@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casa Cielo | Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">C</span>
+        <span>Casa Cielo</span>
+      </a>
+      <nav class="nav-links" aria-label="Admin navigation">
+        <a href="index.html">Home</a>
+        <a href="members.html">Member Portal</a>
+        <a href="admin.html" class="active">Admin</a>
+      </nav>
+    </header>
+
+    <main class="admin-shell">
+      <section class="admin-card">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Admin Access</p>
+            <h1>Member Management</h1>
+          </div>
+        </div>
+
+        <form id="admin-login-form" class="admin-login">
+          <label class="field">
+            <span>Admin Username</span>
+            <input id="adminUser" type="text" value="admin" required />
+          </label>
+          <label class="field">
+            <span>Admin Password</span>
+            <input id="adminPass" type="password" value="admin123" required />
+          </label>
+          <button class="btn btn-primary" type="submit">Login</button>
+        </form>
+
+        <div id="admin-panel" class="admin-panel" hidden>
+          <div class="panel-actions">
+            <button id="newMemberBtn" class="btn btn-primary">Add Member</button>
+          </div>
+
+          <form id="member-form" class="member-form" hidden>
+            <h2 id="formHeading">Add Member</h2>
+            <input id="memberId" type="hidden" />
+            <label class="field">
+              <span>Flat Number</span>
+              <input id="flatNumber" required />
+            </label>
+            <label class="field">
+              <span>Member Name</span>
+              <input id="memberName" required />
+            </label>
+            <label class="field">
+              <span>Wing</span>
+              <input id="wing" required />
+            </label>
+            <label class="field">
+              <span>Floor</span>
+              <input id="floor" required />
+            </label>
+            <label class="field">
+              <span>Member Type</span>
+              <select id="memberType" required>
+                <option value="">Select type</option>
+                <option value="Owner">Owner</option>
+                <option value="Co-Owner">Co-Owner</option>
+                <option value="Family Member">Family Member</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Parking</span>
+              <input id="parking" required />
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input id="memberPassword" required />
+            </label>
+            <label class="field">
+              <span>Primary Contact</span>
+              <input id="contact" required />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input id="email" required />
+            </label>
+            <label class="field">
+              <span>Family Members</span>
+              <input id="family" placeholder="e.g. Spouse, Son" />
+            </label>
+            <label class="field field-full">
+              <span>Owner Group (one per line: Name | Contact | Email)</span>
+              <textarea id="ownerMembers" rows="3" placeholder="Mr. Harsh Verma | +91 99999... | harsh@example.com"></textarea>
+            </label>
+            <label class="field field-full">
+              <span>Co-Owner Group (one per line: Name | Contact | Email)</span>
+              <textarea id="coOwnerMembers" rows="3" placeholder="Mrs. Neha Verma | +91 88888... | neha@example.com"></textarea>
+            </label>
+            <label class="field field-full">
+              <span>Family Members (one per line: Name | Contact | Email)</span>
+              <textarea id="familyMembers" rows="3" placeholder="Kavya Verma | +91 77777... | kavya@example.com"></textarea>
+            </label>
+            <label class="field">
+              <span>Occupancy Status</span>
+              <select id="occupancyStatus">
+                <option value="Self Occupied">Self Occupied</option>
+                <option value="Rented">Rented</option>
+              </select>
+            </label>
+
+            <div class="form-section" style="grid-column: 1 / -1;">
+              <h3>Tenant Information</h3>
+              <label class="field">
+                <span>Tenant Name</span>
+                <input id="tenantName" />
+              </label>
+              <label class="field">
+                <span>Tenant Contact</span>
+                <input id="tenantContact" />
+              </label>
+              <label class="field">
+                <span>Tenant Email</span>
+                <input id="tenantEmail" type="email" />
+              </label>
+              <label class="field field-full">
+                <span>Tenant Notes / Occupancy Details</span>
+                <textarea id="tenantDetails" rows="3" placeholder="Tenancy period, occupancy notes, remarks"></textarea>
+              </label>
+              <label class="field">
+                <span>Registered Agreement</span>
+                <input id="tenantAgreement" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" />
+              </label>
+              <label class="field">
+                <span>Police Verification</span>
+                <input id="tenantPoliceVerification" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" />
+              </label>
+              <label class="field">
+                <span>Aadhar Card</span>
+                <input id="tenantAadhaar" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" />
+              </label>
+              <label class="field">
+                <span>PAN Card</span>
+                <input id="tenantPan" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" />
+              </label>
+              <label class="field">
+                <span>Tenant Photo</span>
+                <input id="tenantPhoto" type="file" accept="image/*" />
+              </label>
+              <label class="field field-full">
+                <span>Tenant Members (one per line: Name | Relation | Contact | Aadhaar | PAN)</span>
+                <textarea id="tenantMembers" rows="4" placeholder="John Doe | Spouse | +91 99999... | 1234 5678 | ABCDE1234F"></textarea>
+              </label>
+              <label class="field">
+                <span>Rent From</span>
+                <input id="rentFrom" type="date" />
+              </label>
+              <label class="field">
+                <span>Agreement End</span>
+                <input id="agreementEnd" type="date" />
+              </label>
+              <label class="field field-full">
+                <span>Renewal History (one per line: Date | Notes)</span>
+                <textarea id="renewalHistory" rows="3" placeholder="2026-01-01 | Renewed for 11 months"></textarea>
+              </label>
+              <label class="field field-full">
+                <span>Previous Tenants (one per line: Name | From | To | Notes)</span>
+                <textarea id="previousTenants" rows="4" placeholder="Rahul Sharma | 2024-01-01 | 2025-12-31 | Vacated after lease expiry"></textarea>
+              </label>
+            </div>
+            <div class="form-buttons">
+              <button class="btn btn-primary" type="submit">Save Member</button>
+              <button class="btn btn-secondary" type="button" id="cancelBtn">Cancel</button>
+            </div>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Flat</th>
+                  <th>Name</th>
+                  <th>Wing</th>
+                  <th>Floor</th>
+                  <th>Type</th>
+                  <th>Contact</th>
+                  <th>Password</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="memberTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

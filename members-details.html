@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casa Cielo | Member Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="members-details.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">C</span>
+        <span>Casa Cielo</span>
+      </a>
+      <nav class="nav-links" aria-label="Member details navigation">
+        <a href="index.html">Home</a>
+        <a href="members.html">Member Portal</a>
+        <a href="members-details.html" class="active">Member Details</a>
+      </nav>
+    </header>
+
+    <main class="detail-shell">
+      <section class="detail-card primary-card">
+        <p class="eyebrow">Primary Member</p>
+        <h1 id="primaryName">Loading member details…</h1>
+        <div class="meta-grid">
+          <div>
+            <span>Flat</span>
+            <strong id="detailFlat">-</strong>
+          </div>
+          <div>
+            <span>Wing</span>
+            <strong id="detailWing">-</strong>
+          </div>
+          <div>
+            <span>Floor</span>
+            <strong id="detailFloor">-</strong>
+          </div>
+          <div>
+            <span>Member Type</span>
+            <strong id="detailMemberType">-</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong id="detailStatus">-</strong>
+          </div>
+        </div>
+        <div class="contact-grid">
+          <div>
+            <span>Phone</span>
+            <strong id="detailPhone">-</strong>
+          </div>
+          <div>
+            <span>Email</span>
+            <strong id="detailEmail">-</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="detail-card">
+        <div class="section-heading">
+          <p class="eyebrow">Flat Residents</p>
+          <h2>Owner, co-owner and family members</h2>
+        </div>
+        <div id="familyMembers" class="family-list"></div>
+      </section>
+
+      <section class="detail-card">
+        <div class="section-heading">
+          <p class="eyebrow">Tenant Records</p>
+          <h2>Tenant and tenant members</h2>
+        </div>
+        <div id="tenantSection" class="tenant-section"></div>
+      </section>
+    </main>
+
+    <script src="members-details.js"></script>
+  </body>
+</html>

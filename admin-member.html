@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casa Cielo | Member Card</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">C</span>
+        <span>Casa Cielo</span>
+      </a>
+      <nav class="nav-links" aria-label="Admin detail navigation">
+        <a href="index.html">Home</a>
+        <a href="members.html">Member Portal</a>
+        <a href="admin.html" class="active">Admin</a>
+      </nav>
+    </header>
+
+    <main class="admin-shell">
+      <section class="admin-card">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Flat Card</p>
+            <h1 id="cardHeading">Loading member card…</h1>
+          </div>
+          <a class="btn btn-secondary" href="admin-list.html">Back to List</a>
+        </div>
+
+        <div class="member-detail-grid">
+          <div class="detail-card">
+            <h2>Flat Summary</h2>
+            <div class="meta-grid">
+              <div><span>Flat</span><strong id="cardFlat">-</strong></div>
+              <div><span>Wing</span><strong id="cardWing">-</strong></div>
+              <div><span>Floor</span><strong id="cardFloor">-</strong></div>
+              <div><span>Occupancy</span><strong id="cardOccupancy">-</strong></div>
+            </div>
+            <div class="contact-grid">
+              <div><span>Primary Contact</span><strong id="cardContact">-</strong></div>
+              <div><span>Email</span><strong id="cardEmail">-</strong></div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <h2>Owner Group</h2>
+            <div id="ownerGroup"></div>
+          </div>
+
+          <div class="detail-card">
+            <h2>Co-Owner Group</h2>
+            <div id="coOwnerGroup"></div>
+          </div>
+
+          <div class="detail-card">
+            <h2>Family Members</h2>
+            <div id="familyGroup"></div>
+          </div>
+
+          <div class="detail-card">
+            <h2>Tenant Details</h2>
+            <div id="tenantGroup"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="admin-member.js"></script>
+  </body>
+</html>

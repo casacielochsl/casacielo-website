@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casa Cielo | Member Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="members.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">C</span>
+        <span>Casa Cielo</span>
+      </a>
+      <nav class="nav-links" aria-label="Member portal navigation">
+        <a href="index.html">Home</a>
+        <a href="members.html" class="active">Member Portal</a>
+      </nav>
+    </header>
+
+    <main class="portal-shell">
+      <section class="login-card" aria-labelledby="member-login-title">
+        <p class="eyebrow">Secure Member Access</p>
+        <h1 id="member-login-title">Resident Login</h1>
+        <p class="intro">Enter your flat number and password to access your account details, dues, and community information.</p>
+
+        <form id="member-login-form">
+          <label class="field">
+            <span>Flat Number</span>
+            <input id="flatInput" type="text" placeholder="e.g. A-101" required />
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <input id="passwordInput" type="password" placeholder="Enter your password" required />
+          </label>
+
+          <button class="btn btn-primary" type="submit">Login</button>
+        </form>
+
+        <p class="hint" id="loginMessage"></p>
+      </section>
+
+      <section id="dashboard" class="dashboard-card" hidden>
+        <div class="dashboard-header">
+          <div>
+            <p class="eyebrow">Member Dashboard</p>
+            <h2 id="memberName">Resident Name</h2>
+          </div>
+          <span class="pill" id="memberStatus">Active</span>
+        </div>
+
+        <div class="details-grid">
+          <article class="detail-card">
+            <h3>Flat Details</h3>
+            <ul>
+              <li><strong>Flat:</strong> <span id="memberFlat"></span></li>
+              <li><strong>Floor:</strong> <span id="memberFloor"></span></li>
+              <li><strong>Tower:</strong> <span id="memberTower"></span></li>
+              <li><strong>Parking:</strong> <span id="memberParking"></span></li>
+            </ul>
+          </article>
+
+          <article class="detail-card">
+            <h3>Owner Details</h3>
+            <ul>
+              <li><strong>Primary Owner:</strong> <span id="ownerName"></span></li>
+              <li><strong>Phone:</strong> <span id="ownerPhone"></span></li>
+              <li><strong>Email:</strong> <span id="ownerEmail"></span></li>
+              <li><strong>Family:</strong> <span id="ownerFamily"></span></li>
+            </ul>
+          </article>
+
+          <article class="detail-card">
+            <h3>Society Record</h3>
+            <ul>
+              <li><strong>Maintenance:</strong> <span id="maintenanceStatus"></span></li>
+              <li><strong>Last Payment:</strong> <span id="lastPayment"></span></li>
+              <li><strong>Next Due:</strong> <span id="nextDue"></span></li>
+              <li><strong>Visitor Pass:</strong> <span id="visitorPass"></span></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="members.js"></script>
+  </body>
+</html>
