@@ -10,7 +10,7 @@ if (!connectionString) {
 
 const sql = neon(connectionString);
 
-const DEFAULT_ADMIN = { username: 'admin', password: 'admin123' };
+const DEFAULT_ADMIN = { username: 'admin', password: 'admin123', email: 'manishtiwari@outlook.in' };
 
 const DEFAULT_MEMBERS = [
   {
@@ -109,9 +109,11 @@ async function main() {
     CREATE TABLE IF NOT EXISTS admins (
       id SERIAL PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL
+      password_hash TEXT NOT NULL,
+      email TEXT
     )
   `;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS email TEXT`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS members (
@@ -137,12 +139,17 @@ async function main() {
 
   const adminPasswordHash = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
   const adminResult = await sql`
-    INSERT INTO admins (username, password_hash)
-    VALUES (${DEFAULT_ADMIN.username}, ${adminPasswordHash})
+    INSERT INTO admins (username, password_hash, email)
+    VALUES (${DEFAULT_ADMIN.username}, ${adminPasswordHash}, ${DEFAULT_ADMIN.email})
     ON CONFLICT (username) DO NOTHING
     RETURNING username
   `;
   console.log(adminResult.length ? `Seeded admin user '${DEFAULT_ADMIN.username}'.` : `Admin user '${DEFAULT_ADMIN.username}' already exists, skipped.`);
+
+  await sql`
+    UPDATE admins SET email = ${DEFAULT_ADMIN.email}
+    WHERE username = ${DEFAULT_ADMIN.username} AND email IS NULL
+  `;
 
   for (const member of DEFAULT_MEMBERS) {
     const passwordHash = await bcrypt.hash(member.password, 10);

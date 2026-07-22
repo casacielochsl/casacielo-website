@@ -10,6 +10,7 @@ if (!AUTH_SECRET) {
 }
 
 const SESSION_MAX_AGE_SECONDS = 12 * 60 * 60; // 12 hours
+const RESET_TOKEN_MAX_AGE_SECONDS = 30 * 60; // 30 minutes
 const ADMIN_COOKIE = 'cc_admin_session';
 const MEMBER_COOKIE = 'cc_member_session';
 
@@ -49,6 +50,17 @@ const requireAdminSession = (req, res) => {
   return session;
 };
 
+const signResetToken = (adminId) => jwt.sign({ role: 'admin-reset', id: adminId }, AUTH_SECRET, { expiresIn: RESET_TOKEN_MAX_AGE_SECONDS });
+
+const verifyResetToken = (token) => {
+  try {
+    const payload = jwt.verify(token, AUTH_SECRET);
+    return payload.role === 'admin-reset' ? payload : null;
+  } catch (error) {
+    return null;
+  }
+};
+
 const requireMemberSession = (req, res) => {
   const session = readSession(req, MEMBER_COOKIE);
   if (!session || session.role !== 'member') {
@@ -66,5 +78,7 @@ module.exports = {
   setSessionCookie,
   readSession,
   requireAdminSession,
-  requireMemberSession
+  requireMemberSession,
+  signResetToken,
+  verifyResetToken
 };
