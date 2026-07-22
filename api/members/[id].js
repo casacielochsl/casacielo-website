@@ -1,7 +1,7 @@
-const { sql } = require('../lib/db');
+const { getDb } = require('../lib/db');
 const { hashPassword, requireAdminSession } = require('../lib/auth');
 const { readJsonBody, sendJson } = require('../lib/http');
-const { toMember, buildDetails } = require('../lib/members');
+const { toMember, buildDetails, normalizeFlatKey } = require('../lib/members');
 
 module.exports = async (req, res) => {
   const session = requireAdminSession(req, res);
@@ -14,13 +14,16 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const db = await getDb();
+  const members = db.collection('members');
+
   if (req.method === 'GET') {
-    const rows = await sql`SELECT * FROM members WHERE id = ${id} LIMIT 1`;
-    if (!rows[0]) {
+    const doc = await members.findOne({ id });
+    if (!doc) {
       sendJson(res, 404, { error: 'Member not found' });
       return;
     }
-    sendJson(res, 200, { member: toMember(rows[0]) });
+    sendJson(res, 200, { member: toMember(doc) });
     return;
   }
 
@@ -33,48 +36,48 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const existingRows = await sql`SELECT * FROM members WHERE id = ${id} LIMIT 1`;
-    const existing = existingRows[0];
+    const existing = await members.findOne({ id });
     if (!existing) {
       sendJson(res, 404, { error: 'Member not found' });
       return;
     }
 
-    const passwordHash = body.password ? await hashPassword(body.password) : existing.password_hash;
-    const details = buildDetails(body, existing.details || {});
-
-    try {
-      const rows = await sql`
-        UPDATE members SET
-          flat = ${body.flat ?? existing.flat},
-          password_hash = ${passwordHash},
-          name = ${body.name ?? existing.name},
-          wing = ${body.wing ?? existing.wing},
-          floor = ${body.floor ?? existing.floor},
-          parking = ${body.parking ?? existing.parking},
-          member_type = ${body.memberType ?? existing.member_type},
-          contact = ${body.contact ?? existing.contact},
-          email = ${body.email ?? existing.email},
-          family = ${body.family ?? existing.family},
-          occupancy_status = ${body.occupancyStatus ?? existing.occupancy_status},
-          details = ${JSON.stringify(details)},
-          updated_at = now()
-        WHERE id = ${id}
-        RETURNING *
-      `;
-      sendJson(res, 200, { member: toMember(rows[0]) });
-    } catch (error) {
-      if (error.code === '23505') {
+    const flatKey = body.flat ? normalizeFlatKey(body.flat) : existing.flatKey;
+    if (flatKey !== existing.flatKey) {
+      const clash = await members.findOne({ flatKey, id: { $ne: id } });
+      if (clash) {
         sendJson(res, 409, { error: `Flat ${body.flat} already exists` });
         return;
       }
-      throw error;
     }
+
+    const passwordHash = body.password ? await hashPassword(body.password) : existing.passwordHash;
+    const details = buildDetails(body, existing.details || {});
+
+    const update = {
+      flat: body.flat ?? existing.flat,
+      flatKey,
+      passwordHash,
+      name: body.name ?? existing.name,
+      wing: body.wing ?? existing.wing,
+      floor: body.floor ?? existing.floor,
+      parking: body.parking ?? existing.parking,
+      memberType: body.memberType ?? existing.memberType,
+      contact: body.contact ?? existing.contact,
+      email: body.email ?? existing.email,
+      family: body.family ?? existing.family,
+      occupancyStatus: body.occupancyStatus ?? existing.occupancyStatus,
+      details,
+      updatedAt: new Date()
+    };
+
+    await members.updateOne({ id }, { $set: update });
+    sendJson(res, 200, { member: toMember({ ...existing, ...update }) });
     return;
   }
 
   if (req.method === 'DELETE') {
-    await sql`DELETE FROM members WHERE id = ${id}`;
+    await members.deleteOne({ id });
     sendJson(res, 200, { ok: true });
     return;
   }

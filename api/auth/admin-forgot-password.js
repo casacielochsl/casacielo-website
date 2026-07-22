@@ -1,4 +1,4 @@
-const { sql } = require('../lib/db');
+const { getDb } = require('../lib/db');
 const { signResetToken } = require('../lib/auth');
 const { sendResetEmail } = require('../lib/mailer');
 const { readJsonBody, sendJson } = require('../lib/http');
@@ -31,11 +31,11 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const rows = await sql`SELECT id, username, email FROM admins WHERE username = ${username} LIMIT 1`;
-  const admin = rows[0];
+  const db = await getDb();
+  const admin = await db.collection('admins').findOne({ username });
 
   if (admin && admin.email) {
-    const token = signResetToken(admin.id);
+    const token = signResetToken(admin._id.toString());
     const resetUrl = `${buildOrigin(req)}/reset-password.html?token=${token}`;
     try {
       await sendResetEmail({ to: admin.email, resetUrl });

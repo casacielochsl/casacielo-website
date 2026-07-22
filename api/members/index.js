@@ -1,15 +1,18 @@
-const { sql } = require('../lib/db');
+const { getDb, nextSequence } = require('../lib/db');
 const { hashPassword, requireAdminSession } = require('../lib/auth');
 const { readJsonBody, sendJson } = require('../lib/http');
-const { toMember, buildDetails } = require('../lib/members');
+const { toMember, buildDetails, normalizeFlatKey } = require('../lib/members');
 
 module.exports = async (req, res) => {
   const session = requireAdminSession(req, res);
   if (!session) return;
 
+  const db = await getDb();
+  const members = db.collection('members');
+
   if (req.method === 'GET') {
-    const rows = await sql`SELECT * FROM members ORDER BY flat ASC`;
-    sendJson(res, 200, { members: rows.map(toMember) });
+    const docs = await members.find().sort({ flat: 1 }).toArray();
+    sendJson(res, 200, { members: docs.map(toMember) });
     return;
   }
 
@@ -27,29 +30,39 @@ module.exports = async (req, res) => {
       return;
     }
 
+    const flatKey = normalizeFlatKey(body.flat);
+    const clash = await members.findOne({ flatKey });
+    if (clash) {
+      sendJson(res, 409, { error: `Flat ${body.flat} already exists` });
+      return;
+    }
+
     const passwordHash = await hashPassword(body.password);
     const details = buildDetails(body, {});
+    const id = await nextSequence(db, 'members');
+    const now = new Date();
 
-    try {
-      const rows = await sql`
-        INSERT INTO members (
-          flat, password_hash, name, wing, floor, parking,
-          member_type, contact, email, family, occupancy_status, details
-        )
-        VALUES (
-          ${body.flat}, ${passwordHash}, ${body.name || ''}, ${body.wing || ''}, ${body.floor || ''}, ${body.parking || ''},
-          ${body.memberType || 'Owner'}, ${body.contact || ''}, ${body.email || ''}, ${body.family || ''}, ${body.occupancyStatus || 'Self Occupied'}, ${JSON.stringify(details)}
-        )
-        RETURNING *
-      `;
-      sendJson(res, 201, { member: toMember(rows[0]) });
-    } catch (error) {
-      if (error.code === '23505') {
-        sendJson(res, 409, { error: `Flat ${body.flat} already exists` });
-        return;
-      }
-      throw error;
-    }
+    const doc = {
+      id,
+      flat: body.flat,
+      flatKey,
+      passwordHash,
+      name: body.name || '',
+      wing: body.wing || '',
+      floor: body.floor || '',
+      parking: body.parking || '',
+      memberType: body.memberType || 'Owner',
+      contact: body.contact || '',
+      email: body.email || '',
+      family: body.family || '',
+      occupancyStatus: body.occupancyStatus || 'Self Occupied',
+      details,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await members.insertOne(doc);
+    sendJson(res, 201, { member: toMember(doc) });
     return;
   }
 

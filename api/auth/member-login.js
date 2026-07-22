@@ -1,6 +1,7 @@
-const { sql } = require('../lib/db');
+const { getDb } = require('../lib/db');
 const { verifyPassword, setSessionCookie, MEMBER_COOKIE } = require('../lib/auth');
 const { readJsonBody, sendJson } = require('../lib/http');
+const { normalizeFlatKey } = require('../lib/members');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -24,10 +25,10 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const rows = await sql`SELECT id, flat, password_hash FROM members WHERE lower(flat) = lower(${flat}) LIMIT 1`;
-  const member = rows[0];
+  const db = await getDb();
+  const member = await db.collection('members').findOne({ flatKey: normalizeFlatKey(flat) });
 
-  if (!member || !(await verifyPassword(password, member.password_hash))) {
+  if (!member || !(await verifyPassword(password, member.passwordHash))) {
     sendJson(res, 401, { error: 'Invalid flat number or password' });
     return;
   }

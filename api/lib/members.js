@@ -8,11 +8,11 @@ const toMember = (row) => {
     tower: row.wing || '',
     floor: row.floor || '',
     parking: row.parking || '',
-    memberType: row.member_type || 'Owner',
+    memberType: row.memberType || 'Owner',
     contact: row.contact || '',
     email: row.email || '',
     family: row.family || '',
-    occupancyStatus: row.occupancy_status || 'Self Occupied',
+    occupancyStatus: row.occupancyStatus || 'Self Occupied',
     password: details.plainPassword || '',
     residents: details.residents || { owners: [], coOwners: [], familyMembers: [] },
     tenant: details.tenant || {},
@@ -38,4 +38,6 @@ const buildDetails = (body, existingDetails = {}) => ({
   visitorPass: body.visitorPass !== undefined ? body.visitorPass : existingDetails.visitorPass
 });
 
-module.exports = { toMember, buildDetails };
+const normalizeFlatKey = (flat) => (flat || '').trim().toUpperCase();
+
+module.exports = { toMember, buildDetails, normalizeFlatKey };

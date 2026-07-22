@@ -1,14 +1,13 @@
 require('dotenv').config();
-const { neon } = require('@neondatabase/serverless');
 const bcrypt = require('bcryptjs');
+const { normalizeFlatKey } = require('../api/lib/members');
 
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-if (!connectionString) {
-  console.error('Missing DATABASE_URL (or POSTGRES_URL) environment variable. Copy .env.example to .env and fill it in.');
+if (!process.env.MONGODB_URI && !process.env.casacielo_MONGODB_URI) {
+  console.error('Missing MONGODB_URI (or casacielo_MONGODB_URI) environment variable. Copy .env.example to .env and fill it in.');
   process.exit(1);
 }
 
-const sql = neon(connectionString);
+const { getDb, nextSequence } = require('../api/lib/db');
 
 const DEFAULT_ADMIN = { username: 'admin', password: 'admin123', email: 'manishtiwari@outlook.in' };
 
@@ -105,71 +104,66 @@ const DEFAULT_MEMBERS = [
 ];
 
 async function main() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS admins (
-      id SERIAL PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      email TEXT
-    )
-  `;
-  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS email TEXT`;
+  const db = await getDb();
 
-  await sql`
-    CREATE TABLE IF NOT EXISTS members (
-      id SERIAL PRIMARY KEY,
-      flat TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      name TEXT,
-      wing TEXT,
-      floor TEXT,
-      parking TEXT,
-      member_type TEXT,
-      contact TEXT,
-      email TEXT,
-      family TEXT,
-      occupancy_status TEXT,
-      details JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `;
-
-  console.log('Tables ready.');
+  await db.collection('admins').createIndex({ username: 1 }, { unique: true });
+  await db.collection('members').createIndex({ flatKey: 1 }, { unique: true });
+  await db.collection('members').createIndex({ id: 1 }, { unique: true });
+  console.log('Indexes ready.');
 
   const adminPasswordHash = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
-  const adminResult = await sql`
-    INSERT INTO admins (username, password_hash, email)
-    VALUES (${DEFAULT_ADMIN.username}, ${adminPasswordHash}, ${DEFAULT_ADMIN.email})
-    ON CONFLICT (username) DO NOTHING
-    RETURNING username
-  `;
-  console.log(adminResult.length ? `Seeded admin user '${DEFAULT_ADMIN.username}'.` : `Admin user '${DEFAULT_ADMIN.username}' already exists, skipped.`);
-
-  await sql`
-    UPDATE admins SET email = ${DEFAULT_ADMIN.email}
-    WHERE username = ${DEFAULT_ADMIN.username} AND email IS NULL
-  `;
+  const existingAdmin = await db.collection('admins').findOne({ username: DEFAULT_ADMIN.username });
+  if (existingAdmin) {
+    await db.collection('admins').updateOne(
+      { username: DEFAULT_ADMIN.username },
+      { $set: { email: existingAdmin.email || DEFAULT_ADMIN.email } }
+    );
+    console.log(`Admin user '${DEFAULT_ADMIN.username}' already exists, skipped (email backfilled if it was missing).`);
+  } else {
+    await db.collection('admins').insertOne({
+      username: DEFAULT_ADMIN.username,
+      passwordHash: adminPasswordHash,
+      email: DEFAULT_ADMIN.email
+    });
+    console.log(`Seeded admin user '${DEFAULT_ADMIN.username}'.`);
+  }
 
   for (const member of DEFAULT_MEMBERS) {
+    const flatKey = normalizeFlatKey(member.flat);
+    const existingMember = await db.collection('members').findOne({ flatKey });
+    if (existingMember) {
+      console.log(`Member '${member.flat}' already exists, skipped.`);
+      continue;
+    }
+
     const passwordHash = await bcrypt.hash(member.password, 10);
     const details = { ...member.details, plainPassword: member.password };
-    const result = await sql`
-      INSERT INTO members (
-        flat, password_hash, name, wing, floor, parking,
-        member_type, contact, email, family, occupancy_status, details
-      )
-      VALUES (
-        ${member.flat}, ${passwordHash}, ${member.name}, ${member.wing}, ${member.floor}, ${member.parking},
-        ${member.memberType}, ${member.contact}, ${member.email}, ${member.family}, ${member.occupancyStatus}, ${JSON.stringify(details)}
-      )
-      ON CONFLICT (flat) DO NOTHING
-      RETURNING flat
-    `;
-    console.log(result.length ? `Seeded member '${member.flat}'.` : `Member '${member.flat}' already exists, skipped.`);
+    const id = await nextSequence(db, 'members');
+    const now = new Date();
+
+    await db.collection('members').insertOne({
+      id,
+      flat: member.flat,
+      flatKey,
+      passwordHash,
+      name: member.name,
+      wing: member.wing,
+      floor: member.floor,
+      parking: member.parking,
+      memberType: member.memberType,
+      contact: member.contact,
+      email: member.email,
+      family: member.family,
+      occupancyStatus: member.occupancyStatus,
+      details,
+      createdAt: now,
+      updatedAt: now
+    });
+    console.log(`Seeded member '${member.flat}'.`);
   }
 
   console.log('Seed complete.');
+  process.exit(0);
 }
 
 main().catch((error) => {

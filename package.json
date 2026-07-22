@@ -8,14 +8,14 @@
     "db:seed": "node scripts/seed.js"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
     "bcryptjs": "^2.4.3",
     "cookie": "^0.7.2",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.10.0",
     "nodemailer": "^9.0.3"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
-    "vercel": "^37.4.0"
+    "vercel": "^56.5.0"
   }
 }

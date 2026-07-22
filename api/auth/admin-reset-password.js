@@ -1,4 +1,5 @@
-const { sql } = require('../lib/db');
+const { ObjectId } = require('mongodb');
+const { getDb } = require('../lib/db');
 const { hashPassword, verifyResetToken } = require('../lib/auth');
 const { readJsonBody, sendJson } = require('../lib/http');
 
@@ -29,8 +30,17 @@ module.exports = async (req, res) => {
     return;
   }
 
+  let objectId;
+  try {
+    objectId = new ObjectId(payload.id);
+  } catch (error) {
+    sendJson(res, 401, { error: 'This reset link is invalid or has expired' });
+    return;
+  }
+
   const passwordHash = await hashPassword(password);
-  await sql`UPDATE admins SET password_hash = ${passwordHash} WHERE id = ${payload.id}`;
+  const db = await getDb();
+  await db.collection('admins').updateOne({ _id: objectId }, { $set: { passwordHash } });
 
   sendJson(res, 200, { ok: true });
 };

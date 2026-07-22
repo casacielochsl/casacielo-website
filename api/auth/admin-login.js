@@ -1,4 +1,4 @@
-const { sql } = require('../lib/db');
+const { getDb } = require('../lib/db');
 const { verifyPassword, setSessionCookie, ADMIN_COOKIE } = require('../lib/auth');
 const { readJsonBody, sendJson } = require('../lib/http');
 
@@ -24,14 +24,14 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const rows = await sql`SELECT id, username, password_hash FROM admins WHERE username = ${username} LIMIT 1`;
-  const admin = rows[0];
+  const db = await getDb();
+  const admin = await db.collection('admins').findOne({ username });
 
-  if (!admin || !(await verifyPassword(password, admin.password_hash))) {
+  if (!admin || !(await verifyPassword(password, admin.passwordHash))) {
     sendJson(res, 401, { error: 'Invalid admin credentials' });
     return;
   }
 
-  setSessionCookie(req, res, ADMIN_COOKIE, { role: 'admin', sub: admin.username, id: admin.id });
+  setSessionCookie(req, res, ADMIN_COOKIE, { role: 'admin', sub: admin.username, id: admin._id.toString() });
   sendJson(res, 200, { ok: true });
 };
