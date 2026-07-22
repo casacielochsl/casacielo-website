@@ -1,77 +1,11 @@
-const STORAGE_KEY = 'casaCieloMembers';
-const defaultMembers = [
-  {
-    id: 1,
-    flat: 'A-101',
-    name: 'Mr. Harsh Verma',
-    wing: 'A Wing',
-    floor: '1st Floor',
-    status: 'Active',
-    contact: '+91 8657871340',
-    email: 'harsh.verma@example.com',
-    memberType: 'Owner',
-    familyMembers: [
-      { name: 'Mrs. Neha Verma', relation: 'Spouse', age: '34 years', type: 'Family Member' },
-      { name: 'Kavya Verma', relation: 'Daughter', age: '8 years', type: 'Family Member' }
-    ]
-  },
-  {
-    id: 2,
-    flat: 'A-102',
-    name: 'Ms. Priya Sharma',
-    wing: 'A Wing',
-    floor: '1st Floor',
-    status: 'Reminder Sent',
-    contact: '+91 9876543210',
-    email: 'priya.sharma@example.com',
-    memberType: 'Co-Owner',
-    familyMembers: [
-      { name: 'Mr. Rahul Sharma', relation: 'Spouse', age: '38 years', type: 'Family Member' },
-      { name: 'Aarav Sharma', relation: 'Son', age: '6 years', type: 'Family Member' }
-    ]
-  },
-  {
-    id: 3,
-    flat: 'B-205',
-    name: 'Mr. Rohan Patel',
-    wing: 'B Wing',
-    floor: '2nd Floor',
-    status: 'Active',
-    contact: '+91 9999988888',
-    email: 'rohan.patel@example.com',
-    memberType: 'Family Member',
-    familyMembers: [
-      { name: 'Mrs. Pooja Patel', relation: 'Spouse', age: '35 years', type: 'Family Member' }
-    ]
-  }
-];
-
-const loadMembers = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) {
-        return parsed;
-      }
-    }
-  } catch (error) {
-    console.warn('Unable to load saved members:', error);
-  }
-  return defaultMembers;
-};
-
-const params = new URLSearchParams(window.location.search);
-const flat = params.get('flat');
-const members = loadMembers();
-const member = flat ? members.find((item) => item.flat.toUpperCase() === flat.toUpperCase()) : null;
+const API_BASE = '/api';
 
 const setText = (id, value) => {
   const element = document.getElementById(id);
   if (element) element.textContent = value;
 };
 
-if (member) {
+const renderMember = (member) => {
   setText('primaryName', member.name || member.primaryName || 'Member');
   setText('detailFlat', member.flat || '-');
   setText('detailWing', member.wing || '-');
@@ -178,6 +112,25 @@ if (member) {
       `;
     }
   }
-} else {
-  setText('primaryName', 'No member details found');
-}
+};
+
+const init = async () => {
+  const res = await fetch(`${API_BASE}/members/me`, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (res.status === 401) {
+    window.location.href = 'members.html';
+    return;
+  }
+
+  if (!res.ok) {
+    setText('primaryName', 'No member details found');
+    return;
+  }
+
+  const data = await res.json();
+  renderMember(data.member);
+};
+
+init();

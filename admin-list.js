@@ -1,24 +1,24 @@
-const STORAGE_KEY = 'casaCieloMembers';
-const loadMembers = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
-    }
-  } catch (error) {
-    console.warn('Unable to load saved members:', error);
-  }
-  return [];
-};
+const API_BASE = '/api';
 
-const members = loadMembers();
+let members = [];
 const tableBody = document.getElementById('memberTableBody');
 const filterSearch = document.getElementById('filterSearch');
 const filterType = document.getElementById('filterType');
 
-const saveMembers = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+const api = async (path, options = {}) => {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  if (res.status === 401) {
+    window.location.href = 'admin.html';
+    throw new Error('Not authenticated');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Request failed');
+  }
+  return data;
 };
 
 const getFilteredMembers = () => {
@@ -58,7 +58,7 @@ const renderMembers = () => {
   element?.addEventListener('change', renderMembers);
 });
 
-tableBody?.addEventListener('click', (event) => {
+tableBody?.addEventListener('click', async (event) => {
   const button = event.target.closest('button');
   if (!button) return;
   const id = Number(button.getAttribute('data-id'));
@@ -68,13 +68,24 @@ tableBody?.addEventListener('click', (event) => {
   } else if (action === 'edit') {
     window.location.href = `admin-management?id=${id}&mode=edit`;
   } else if (action === 'delete') {
-    const index = members.findIndex((entry) => entry.id === id);
-    if (index >= 0) {
-      members.splice(index, 1);
-      saveMembers();
+    try {
+      await api(`/members/${id}`, { method: 'DELETE' });
+      members = members.filter((entry) => entry.id !== id);
       renderMembers();
+    } catch (error) {
+      alert(error.message || 'Failed to delete member');
     }
   }
 });
 
-renderMembers();
+const init = async () => {
+  try {
+    const data = await api('/members');
+    members = data.members;
+    renderMembers();
+  } catch (error) {
+    // already redirected to admin.html on 401
+  }
+};
+
+init();

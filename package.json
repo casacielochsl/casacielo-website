@@ -3,6 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "python -m http.server 3000"
+    "start": "python -m http.server 3000",
+    "dev": "vercel dev",
+    "db:seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "bcryptjs": "^2.4.3",
+    "cookie": "^0.7.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "vercel": "^37.4.0",
+    "dotenv": "^16.4.5"
   }
 }

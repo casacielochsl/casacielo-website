@@ -1,21 +1,7 @@
-const STORAGE_KEY = 'casaCieloMembers';
-const loadMembers = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
-    }
-  } catch (error) {
-    console.warn('Unable to load saved members:', error);
-  }
-  return [];
-};
+const API_BASE = '/api';
 
 const params = new URLSearchParams(window.location.search);
 const id = Number(params.get('id'));
-const members = loadMembers();
-const member = members.find((item) => item.id === id);
 
 const setText = (id, value) => {
   const element = document.getElementById(id);
@@ -43,7 +29,7 @@ const renderGroup = (containerId, items, title) => {
   `;
 };
 
-if (member) {
+const renderMember = (member) => {
   setText('cardHeading', `${member.flat || 'Flat'} • ${member.name || 'Member'}`);
   setText('cardFlat', member.flat || '-');
   setText('cardWing', member.wing || '-');
@@ -78,6 +64,26 @@ if (member) {
       `;
     }
   }
-} else {
-  setText('cardHeading', 'Member card not found');
-}
+};
+
+const init = async () => {
+  if (!id) {
+    setText('cardHeading', 'Member card not found');
+    return;
+  }
+  const res = await fetch(`${API_BASE}/members/${id}`, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (res.status === 401) {
+    window.location.href = 'admin.html';
+    return;
+  }
+  if (!res.ok) {
+    setText('cardHeading', 'Member card not found');
+    return;
+  }
+  const data = await res.json();
+  renderMember(data.member);
+};
+
+init();

@@ -1,31 +1,7 @@
-const adminUsers = [{ username: 'admin', password: 'admin123' }];
-const STORAGE_KEY = 'casaCieloMembers';
-const defaultMembers = [
-  { id: 1, flat: 'A-101', name: 'Mr. Harsh Verma', wing: 'A Wing', floor: '1st Floor', parking: 'P-11', password: '101', contact: '+91 8657871340', email: 'harsh.verma@example.com', family: 'Spouse, Daughter', memberType: 'Owner' },
-  { id: 2, flat: 'A-102', name: 'Ms. Priya Sharma', wing: 'A Wing', floor: '1st Floor', parking: 'P-12', password: '102', contact: '+91 9876543210', email: 'priya.sharma@example.com', family: 'Spouse, Son', memberType: 'Co-Owner' },
-  { id: 3, flat: 'B-205', name: 'Mr. Rohan Patel', wing: 'B Wing', floor: '2nd Floor', parking: 'P-27', password: '205', contact: '+91 9999988888', email: 'rohan.patel@example.com', family: 'Spouse', memberType: 'Family Member' }
-];
+const API_BASE = '/api';
 
-const loadMembers = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) {
-        return parsed;
-      }
-    }
-  } catch (error) {
-    console.warn('Unable to load saved members:', error);
-  }
-  return defaultMembers;
-};
+let members = [];
 
-const saveMembers = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
-};
-
-let members = loadMembers();
 const params = new URLSearchParams(window.location.search);
 const editId = params.get('id');
 const mode = params.get('mode');
@@ -39,6 +15,27 @@ const newMemberBtn = document.getElementById('newMemberBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 
 const isManagementPage = /\/admin-management(?:\.html)?\/?$/.test(window.location.pathname);
+
+const api = async (path, options = {}) => {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  if (res.status === 401) {
+    window.location.href = 'admin.html';
+    throw new Error('Not authenticated');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Request failed');
+  }
+  return data;
+};
+
+const fetchMembers = async () => {
+  const data = await api('/members');
+  members = data.members;
+};
 
 const renderMembers = () => {
   if (!tableBody) return;
@@ -109,50 +106,77 @@ const showForm = (member = null) => {
   document.getElementById('previousTenants').value = (member?.tenant?.previousTenants || []).map((entry) => `${entry.name || ''} | ${entry.from || ''} | ${entry.to || ''} | ${entry.note || ''}`).join('\n').trim();
 };
 
-loginForm?.addEventListener('submit', (event) => {
+loginForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const user = document.getElementById('adminUser').value.trim();
   const pass = document.getElementById('adminPass').value.trim();
-  const admin = adminUsers.find((entry) => entry.username === user && entry.password === pass);
-  if (admin) {
+  try {
+    const res = await fetch(`${API_BASE}/auth/admin-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    if (!res.ok) {
+      alert('Invalid admin credentials');
+      return;
+    }
     window.location.href = 'admin-list.html';
-  } else {
+  } catch (error) {
     alert('Invalid admin credentials');
   }
 });
 
-if (isManagementPage) {
-  const managementMode = params.get('mode');
-  const managementId = params.get('id');
-  if (managementMode === 'create') {
+const init = async () => {
+  if (isManagementPage) {
+    try {
+      await fetchMembers();
+    } catch (error) {
+      return;
+    }
+    const managementMode = params.get('mode');
+    const managementId = params.get('id');
+    if (managementMode === 'create') {
+      showForm();
+      memberForm.hidden = false;
+    } else if (managementMode === 'edit' && managementId) {
+      const member = members.find((item) => item.id === Number(managementId));
+      if (member) {
+        showForm(member);
+        memberForm.hidden = false;
+      } else if (formHeading) {
+        formHeading.textContent = 'Member not found';
+        memberForm.hidden = false;
+      }
+    }
+  } else if (mode === 'create') {
+    if (loginForm) loginForm.hidden = true;
+    if (adminPanel) adminPanel.hidden = false;
+    try {
+      await fetchMembers();
+    } catch (error) {
+      return;
+    }
+    renderMembers();
     showForm();
-    memberForm.hidden = false;
-  } else if (managementMode === 'edit' && managementId) {
-    const member = members.find((item) => item.id === Number(managementId));
+    if (memberForm) memberForm.hidden = false;
+  } else if (mode === 'edit' && editId) {
+    if (loginForm) loginForm.hidden = true;
+    if (adminPanel) adminPanel.hidden = false;
+    try {
+      await fetchMembers();
+    } catch (error) {
+      return;
+    }
+    renderMembers();
+    const member = members.find((item) => item.id === Number(editId));
     if (member) {
       showForm(member);
-      memberForm.hidden = false;
-    } else if (formHeading) {
-      formHeading.textContent = 'Member not found';
-      memberForm.hidden = false;
+      if (memberForm) memberForm.hidden = false;
     }
   }
-} else if (mode === 'create') {
-  if (loginForm) loginForm.hidden = true;
-  if (adminPanel) adminPanel.hidden = false;
-  renderMembers();
-  showForm();
-  if (memberForm) memberForm.hidden = false;
-} else if (mode === 'edit' && editId) {
-  if (loginForm) loginForm.hidden = true;
-  if (adminPanel) adminPanel.hidden = false;
-  renderMembers();
-  const member = members.find((item) => item.id === Number(editId));
-  if (member) {
-    showForm(member);
-    if (memberForm) memberForm.hidden = false;
-  }
-}
+};
+
+init();
 
 newMemberBtn?.addEventListener('click', () => showForm());
 cancelBtn?.addEventListener('click', () => {
@@ -228,7 +252,6 @@ document.getElementById('member-form')?.addEventListener('submit', async (event)
   }
 
   const memberData = {
-    id: id || Date.now(),
     flat: document.getElementById('flatNumber').value.trim(),
     name: document.getElementById('memberName').value.trim(),
     wing: document.getElementById('wing').value.trim(),
@@ -258,18 +281,23 @@ document.getElementById('member-form')?.addEventListener('submit', async (event)
       documents: tenantDocs
     }
   };
-  if (id) {
-    members = members.map((item) => item.id === id ? { ...item, ...memberData } : item);
-  } else {
-    members.push(memberData);
+
+  try {
+    if (id) {
+      await api(`/members/${id}`, { method: 'PUT', body: JSON.stringify(memberData) });
+    } else {
+      await api('/members', { method: 'POST', body: JSON.stringify(memberData) });
+    }
+  } catch (error) {
+    alert(error.message || 'Failed to save member');
+    return;
   }
-  saveMembers();
-  renderMembers();
+
   memberForm.reset();
   window.location.href = 'admin-list.html';
 });
 
-tableBody?.addEventListener('click', (event) => {
+tableBody?.addEventListener('click', async (event) => {
   const button = event.target.closest('button');
   if (!button) return;
   const id = Number(button.getAttribute('data-id'));
@@ -280,16 +308,22 @@ tableBody?.addEventListener('click', (event) => {
     const member = members.find((item) => item.id === id);
     showForm(member);
   } else if (action === 'delete') {
-    members = members.filter((item) => item.id !== id);
-    saveMembers();
-    renderMembers();
-  } else if (action === 'reset') {
-    const member = members.find((item) => item.id === id);
-    if (member) {
-      member.password = 'reset123';
-      saveMembers();
-      alert(`Password reset for ${member.flat}. New password: reset123`);
+    try {
+      await api(`/members/${id}`, { method: 'DELETE' });
+      members = members.filter((item) => item.id !== id);
       renderMembers();
+    } catch (error) {
+      alert(error.message || 'Failed to delete member');
+    }
+  } else if (action === 'reset') {
+    try {
+      const data = await api(`/members/${id}`, { method: 'PUT', body: JSON.stringify({ password: 'reset123' }) });
+      const index = members.findIndex((item) => item.id === id);
+      if (index >= 0) members[index] = data.member;
+      alert(`Password reset for ${data.member.flat}. New password: reset123`);
+      renderMembers();
+    } catch (error) {
+      alert(error.message || 'Failed to reset password');
     }
   }
 });
