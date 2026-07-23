@@ -4,6 +4,13 @@ let members = [];
 const tableBody = document.getElementById('memberTableBody');
 const filterSearch = document.getElementById('filterSearch');
 const filterType = document.getElementById('filterType');
+const noticeForm = document.getElementById('notice-form');
+const noticeMessageInput = document.getElementById('noticeMessage');
+const noticeList = document.getElementById('noticeList');
+
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
 
 const api = async (path, options = {}) => {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -78,6 +85,66 @@ tableBody?.addEventListener('click', async (event) => {
   }
 });
 
+const renderNotices = (notices) => {
+  if (!noticeList) return;
+  if (!notices.length) {
+    noticeList.innerHTML = '<div class="notice-item notice-empty">No notices yet.</div>';
+    return;
+  }
+  noticeList.innerHTML = notices.map((notice) => `
+    <div class="notice-item">
+      <span class="notice-text">${escapeHtml(notice.message)}</span>
+      <label class="notice-toggle">
+        <input type="checkbox" data-action="toggle" data-id="${notice.id}" ${notice.active ? 'checked' : ''} />
+        <span>Active</span>
+      </label>
+      <button class="action-btn" data-action="delete" data-id="${notice.id}">Delete</button>
+    </div>
+  `).join('');
+};
+
+const fetchNotices = async () => {
+  const data = await api('/notices');
+  renderNotices(data.notices);
+};
+
+noticeForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const message = noticeMessageInput.value.trim();
+  if (!message) return;
+  try {
+    await api('/notices', { method: 'POST', body: JSON.stringify({ message }) });
+    noticeMessageInput.value = '';
+    await fetchNotices();
+  } catch (error) {
+    alert(error.message || 'Failed to add notice');
+  }
+});
+
+noticeList?.addEventListener('change', async (event) => {
+  const checkbox = event.target.closest('input[data-action="toggle"]');
+  if (!checkbox) return;
+  const id = Number(checkbox.getAttribute('data-id'));
+  try {
+    await api(`/notices/${id}`, { method: 'PUT', body: JSON.stringify({ active: checkbox.checked }) });
+  } catch (error) {
+    alert(error.message || 'Failed to update notice');
+    checkbox.checked = !checkbox.checked;
+  }
+});
+
+noticeList?.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="delete"]');
+  if (!button) return;
+  const id = Number(button.getAttribute('data-id'));
+  try {
+    await api(`/notices/${id}`, { method: 'DELETE' });
+    await fetchNotices();
+  } catch (error) {
+    alert(error.message || 'Failed to delete notice');
+  }
+});
+
 const init = async () => {
   try {
     const data = await api('/members');
@@ -85,6 +152,12 @@ const init = async () => {
     renderMembers();
   } catch (error) {
     // already redirected to admin.html on 401
+    return;
+  }
+  try {
+    await fetchNotices();
+  } catch (error) {
+    // non-fatal — member list already loaded
   }
 };
 

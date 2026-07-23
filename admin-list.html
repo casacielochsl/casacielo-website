@@ -35,6 +35,19 @@
           </div>
         </div>
 
+        <div class="notice-board">
+          <h2>Notice Board</h2>
+          <p class="form-hint">Active notices scroll on the public homepage.</p>
+          <form id="notice-form" class="notice-form">
+            <label class="field field-full">
+              <span>New Notice</span>
+              <input id="noticeMessage" type="text" placeholder="e.g. Water supply interruption on July 25th" required />
+            </label>
+            <button class="btn btn-primary" type="submit">Add Notice</button>
+          </form>
+          <div id="noticeList" class="notice-list"></div>
+        </div>
+
         <div class="filter-bar">
           <label class="field field-inline">
             <span>Search</span>

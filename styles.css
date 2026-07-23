@@ -38,6 +38,30 @@ img {
   border-radius: 22px;
 }
 
+.notice-marquee {
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  color: #07111f;
+}
+
+.notice-marquee-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 0.55rem 0;
+  padding-left: 100%;
+  font-weight: 700;
+  animation: notice-scroll 22s linear infinite;
+}
+
+@keyframes notice-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-marquee-track { animation: none; padding-left: 1rem; }
+}
+
 .topbar {
   position: sticky;
   top: 0;

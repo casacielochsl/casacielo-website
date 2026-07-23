@@ -80,12 +80,28 @@ const parseResidentGroup = (rawValue) => rawValue
     return { name: parts[0] || '', contact: parts[1] || '', email: parts[2] || '' };
   });
 
+const FLOORS = Array.from({ length: 18 }, (_, index) => index + 1).filter((floor) => floor !== 13);
+const UNITS = ['01', '02', '03', '04', '05', '06'];
+const ALL_FLATS = FLOORS.flatMap((floor) => UNITS.map((unit) => `${floor}${unit}`));
+
+const populateFlatOptions = (currentFlat) => {
+  const select = document.getElementById('flatNumber');
+  if (!select) return;
+  const takenFlats = new Set(members.filter((item) => item.flat !== currentFlat).map((item) => item.flat));
+  const availableFlats = ALL_FLATS.filter((flat) => !takenFlats.has(flat));
+  if (currentFlat && !availableFlats.includes(currentFlat)) {
+    availableFlats.unshift(currentFlat);
+  }
+  select.innerHTML = availableFlats.map((flat) => `<option value="${flat}">${flat}</option>`).join('');
+  select.value = currentFlat || availableFlats[0] || '';
+};
+
 const showForm = (member = null) => {
   if (!memberForm) return;
   memberForm.hidden = false;
   formHeading.textContent = member ? 'Edit Member' : 'Add Member';
   document.getElementById('memberId').value = member?.id || '';
-  document.getElementById('flatNumber').value = member?.flat || '';
+  populateFlatOptions(member?.flat || '');
   document.getElementById('memberName').value = member?.name || '';
   document.getElementById('wing').value = member?.wing || '';
   document.getElementById('floor').value = member?.floor || '';
