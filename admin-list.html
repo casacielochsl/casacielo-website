@@ -48,6 +48,31 @@
           <div id="noticeList" class="notice-list"></div>
         </div>
 
+        <div class="notice-board">
+          <h2>Upcoming Events</h2>
+          <p class="form-hint">Active events with an image show in the Upcoming Events section on the public homepage.</p>
+          <form id="event-form" class="notice-form">
+            <label class="field">
+              <span>Title</span>
+              <input id="eventTitle" type="text" placeholder="e.g. Annual Day Celebration" required />
+            </label>
+            <label class="field">
+              <span>Date</span>
+              <input id="eventDate" type="date" />
+            </label>
+            <label class="field field-full">
+              <span>Description</span>
+              <textarea id="eventDescription" rows="2" placeholder="Short description shown under the event"></textarea>
+            </label>
+            <label class="field">
+              <span>Image</span>
+              <input id="eventImage" type="file" accept="image/*" />
+            </label>
+            <button class="btn btn-primary" type="submit">Add Event</button>
+          </form>
+          <div id="eventList" class="notice-list"></div>
+        </div>
+
         <div class="filter-bar">
           <label class="field field-inline">
             <span>Search</span>

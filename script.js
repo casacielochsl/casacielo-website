@@ -16,6 +16,34 @@ if (noticeMarquee && noticeMarqueeText) {
     .catch(() => {});
 }
 
+const eventsSection = document.getElementById('events');
+const eventsGrid = document.getElementById('eventsGrid');
+const eventsNavLink = document.getElementById('eventsNavLink');
+
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
+
+if (eventsSection && eventsGrid) {
+  fetch('/api/events')
+    .then((res) => (res.ok ? res.json() : { events: [] }))
+    .then((data) => {
+      const activeEvents = (data.events || []).filter((event) => event.active);
+      if (!activeEvents.length) return;
+      eventsGrid.innerHTML = activeEvents.map((event) => `
+        <article class="event-card">
+          ${event.image?.dataUrl ? `<img src="${event.image.dataUrl}" alt="${escapeHtml(event.title)}" />` : ''}
+          ${event.date ? `<span class="event-date">${escapeHtml(event.date)}</span>` : ''}
+          <h3>${escapeHtml(event.title)}</h3>
+          ${event.description ? `<p>${escapeHtml(event.description)}</p>` : ''}
+        </article>
+      `).join('');
+      eventsSection.hidden = false;
+      if (eventsNavLink) eventsNavLink.hidden = false;
+    })
+    .catch(() => {});
+}
+
 if (year) {
   year.textContent = new Date().getFullYear();
 }

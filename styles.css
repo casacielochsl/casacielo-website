@@ -157,7 +157,7 @@ h2 {
   font-size: clamp(1.6rem, 3vw, 2.2rem);
 }
 
-.hero-text, .card p, .amenity-item p, .contact-card p, .footer p {
+.hero-text, .card p, .amenity-item p, .contact-card p, .footer p, .event-card p {
   color: var(--muted);
 }
 
@@ -256,7 +256,7 @@ h2 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.card, .amenity-item, .contact-card {
+.card, .amenity-item, .contact-card, .event-card {
   padding: 1.35rem;
   border: 1px solid var(--border);
   background: var(--panel);
@@ -275,6 +275,29 @@ h2 {
 
 .gallery-grid img {
   height: 230px;
+}
+
+.events-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.event-card img {
+  height: 170px;
+  margin-bottom: 1rem;
+}
+
+.event-date {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.event-card h3 {
+  margin: 0 0 0.5rem;
 }
 
 .contact-card {
@@ -302,7 +325,8 @@ h2 {
 
   .feature-grid,
   .amenities-grid,
-  .gallery-grid {
+  .gallery-grid,
+  .events-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -332,6 +356,7 @@ h2 {
   .feature-grid,
   .amenities-grid,
   .gallery-grid,
+  .events-grid,
   .contact-card {
     grid-template-columns: 1fr;
     flex-direction: column;

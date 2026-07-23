@@ -7,6 +7,23 @@ const filterType = document.getElementById('filterType');
 const noticeForm = document.getElementById('notice-form');
 const noticeMessageInput = document.getElementById('noticeMessage');
 const noticeList = document.getElementById('noticeList');
+const eventForm = document.getElementById('event-form');
+const eventTitleInput = document.getElementById('eventTitle');
+const eventDateInput = document.getElementById('eventDate');
+const eventDescriptionInput = document.getElementById('eventDescription');
+const eventImageInput = document.getElementById('eventImage');
+const eventList = document.getElementById('eventList');
+
+const readFileDataUrl = (file) => new Promise((resolve) => {
+  if (!file) {
+    resolve(null);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => resolve({ name: file.name, type: file.type, dataUrl: reader.result });
+  reader.onerror = () => resolve(null);
+  reader.readAsDataURL(file);
+});
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -145,6 +162,79 @@ noticeList?.addEventListener('click', async (event) => {
   }
 });
 
+const renderEvents = (events) => {
+  if (!eventList) return;
+  if (!events.length) {
+    eventList.innerHTML = '<div class="notice-item notice-empty">No events yet.</div>';
+    return;
+  }
+  eventList.innerHTML = events.map((event) => `
+    <div class="notice-item">
+      ${event.image?.dataUrl ? `<img class="event-thumb" src="${event.image.dataUrl}" alt="" />` : ''}
+      <span class="notice-text">
+        <strong>${escapeHtml(event.title)}</strong>${event.date ? ` — ${escapeHtml(event.date)}` : ''}
+        ${event.description ? `<br /><span class="form-hint">${escapeHtml(event.description)}</span>` : ''}
+      </span>
+      <label class="notice-toggle">
+        <input type="checkbox" data-action="toggle" data-id="${event.id}" ${event.active ? 'checked' : ''} />
+        <span>Active</span>
+      </label>
+      <button class="action-btn" data-action="delete" data-id="${event.id}">Delete</button>
+    </div>
+  `).join('');
+};
+
+const fetchEvents = async () => {
+  const data = await api('/events');
+  renderEvents(data.events);
+};
+
+eventForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const title = eventTitleInput.value.trim();
+  if (!title) return;
+  const image = await readFileDataUrl(eventImageInput.files && eventImageInput.files[0]);
+  try {
+    await api('/events', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        date: eventDateInput.value,
+        description: eventDescriptionInput.value.trim(),
+        image
+      })
+    });
+    eventForm.reset();
+    await fetchEvents();
+  } catch (error) {
+    alert(error.message || 'Failed to add event');
+  }
+});
+
+eventList?.addEventListener('change', async (event) => {
+  const checkbox = event.target.closest('input[data-action="toggle"]');
+  if (!checkbox) return;
+  const id = Number(checkbox.getAttribute('data-id'));
+  try {
+    await api(`/events/${id}`, { method: 'PUT', body: JSON.stringify({ active: checkbox.checked }) });
+  } catch (error) {
+    alert(error.message || 'Failed to update event');
+    checkbox.checked = !checkbox.checked;
+  }
+});
+
+eventList?.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="delete"]');
+  if (!button) return;
+  const id = Number(button.getAttribute('data-id'));
+  try {
+    await api(`/events/${id}`, { method: 'DELETE' });
+    await fetchEvents();
+  } catch (error) {
+    alert(error.message || 'Failed to delete event');
+  }
+});
+
 const init = async () => {
   try {
     const data = await api('/members');
@@ -156,6 +246,11 @@ const init = async () => {
   }
   try {
     await fetchNotices();
+  } catch (error) {
+    // non-fatal — member list already loaded
+  }
+  try {
+    await fetchEvents();
   } catch (error) {
     // non-fatal — member list already loaded
   }
