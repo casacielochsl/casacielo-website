@@ -1,7 +1,7 @@
-const { getDb } = require('../lib/db');
-const { requireMemberSession } = require('../lib/auth');
-const { sendJson } = require('../lib/http');
-const { toMember } = require('../lib/members');
+const { getDb } = require('../_lib/db');
+const { requireMemberSession } = require('../_lib/auth');
+const { sendJson } = require('../_lib/http');
+const { toMember } = require('../_lib/members');
 
 module.exports = async (req, res) => {
   const session = requireMemberSession(req, res);

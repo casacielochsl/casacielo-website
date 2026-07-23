@@ -1,7 +1,7 @@
-const { getDb } = require('../lib/db');
-const { hashPassword, requireAdminSession } = require('../lib/auth');
-const { readJsonBody, sendJson } = require('../lib/http');
-const { toMember, buildDetails, normalizeFlatKey } = require('../lib/members');
+const { getDb } = require('../_lib/db');
+const { hashPassword, requireAdminSession } = require('../_lib/auth');
+const { readJsonBody, sendJson } = require('../_lib/http');
+const { toMember, buildDetails, normalizeFlatKey } = require('../_lib/members');
 
 module.exports = async (req, res) => {
   const session = requireAdminSession(req, res);

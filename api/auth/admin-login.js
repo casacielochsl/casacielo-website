@@ -1,6 +1,6 @@
-const { getDb } = require('../lib/db');
-const { verifyPassword, setSessionCookie, ADMIN_COOKIE } = require('../lib/auth');
-const { readJsonBody, sendJson } = require('../lib/http');
+const { getDb } = require('../_lib/db');
+const { verifyPassword, setSessionCookie, ADMIN_COOKIE } = require('../_lib/auth');
+const { readJsonBody, sendJson } = require('../_lib/http');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {

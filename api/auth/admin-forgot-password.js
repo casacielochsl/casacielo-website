@@ -1,7 +1,7 @@
-const { getDb } = require('../lib/db');
-const { signResetToken } = require('../lib/auth');
-const { sendResetEmail } = require('../lib/mailer');
-const { readJsonBody, sendJson } = require('../lib/http');
+const { getDb } = require('../_lib/db');
+const { signResetToken } = require('../_lib/auth');
+const { sendResetEmail } = require('../_lib/mailer');
+const { readJsonBody, sendJson } = require('../_lib/http');
 
 const buildOrigin = (req) => {
   const proto = (req.headers['x-forwarded-proto'] || 'http').split(',')[0];

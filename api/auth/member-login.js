@@ -1,7 +1,7 @@
-const { getDb } = require('../lib/db');
-const { verifyPassword, setSessionCookie, MEMBER_COOKIE } = require('../lib/auth');
-const { readJsonBody, sendJson } = require('../lib/http');
-const { normalizeFlatKey } = require('../lib/members');
+const { getDb } = require('../_lib/db');
+const { verifyPassword, setSessionCookie, MEMBER_COOKIE } = require('../_lib/auth');
+const { readJsonBody, sendJson } = require('../_lib/http');
+const { normalizeFlatKey } = require('../_lib/members');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {

@@ -6,7 +6,7 @@ if (!process.env.MONGODB_URI && !process.env.casacielo_MONGODB_URI) {
   process.exit(1);
 }
 
-const { getDb } = require('../api/lib/db');
+const { getDb } = require('../api/_lib/db');
 
 const DEFAULT_ADMIN = { username: 'admin', password: 'admin123', email: 'manishtiwari@outlook.in' };
 
