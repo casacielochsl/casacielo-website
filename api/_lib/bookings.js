@@ -7,6 +7,7 @@ const toBooking = (doc, viewerRole) => {
     slot: doc.slot,
     memberName: doc.memberName,
     memberFlat: doc.memberFlat,
+    memberWing: doc.memberWing || '',
     memberId: doc.memberId,
     purpose: doc.purpose || '',
     amount: doc.amount ?? 0,

@@ -135,6 +135,7 @@ module.exports = async (req, res) => {
       memberId: member.id,
       memberName: member.name,
       memberFlat: member.flat,
+      memberWing: member.wing,
       memberEmail: member.email,
       memberContact: member.contact,
       purpose,

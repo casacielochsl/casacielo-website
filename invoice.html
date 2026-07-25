@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casa Cielo | Invoice</title>
+    <link rel="stylesheet" href="invoice.css" />
+  </head>
+  <body>
+    <div class="invoice-toolbar no-print">
+      <button class="btn btn-secondary" type="button" onclick="history.back()">Back</button>
+      <button class="btn btn-primary" type="button" id="printBtn">Print Invoice</button>
+    </div>
+
+    <p id="invoiceError" class="invoice-error no-print" hidden>Invoice not found.</p>
+
+    <div class="invoice-sheet" id="invoiceSheet">
+      <header class="invoice-header">
+        <div>
+          <h1>CASA CIELO</h1>
+          <h2>CO-OPERATIVE HOUSING SOCIETY LIMITED</h2>
+          <p>Regd. No.: TNA/KLN/HSG/(TC)33283/2021-22/2021 dated 14 MAY 2021</p>
+        </div>
+        <div class="invoice-badge">C</div>
+      </header>
+
+      <div class="invoice-body">
+        <div class="invoice-watermark">CASA CIELO<br />ESTD. 2021</div>
+
+        <div class="invoice-meta">
+          <div>
+            <span>Invoice #</span>
+            <strong id="invInvoiceNo">-</strong>
+          </div>
+          <div>
+            <span>Booking Date</span>
+            <strong id="invDate">-</strong>
+          </div>
+        </div>
+
+        <h3>Bill To</h3>
+        <table class="invoice-table">
+          <tr><td>Member</td><td id="invMember">-</td></tr>
+          <tr><td>Flat</td><td id="invFlat">-</td></tr>
+          <tr><td>Wing</td><td id="invWing">-</td></tr>
+        </table>
+
+        <h3>Booking Details</h3>
+        <table class="invoice-table">
+          <thead>
+            <tr><th>Description</th><th>Amount</th></tr>
+          </thead>
+          <tbody id="invLineItems"></tbody>
+          <tfoot>
+            <tr class="invoice-total-row"><td>Total</td><td id="invTotal">-</td></tr>
+          </tfoot>
+        </table>
+
+        <p id="invPurpose" class="invoice-purpose"></p>
+      </div>
+
+      <footer class="invoice-footer">
+        Address : Casa Cielo Survey No. 149/1 and 150/10, F-Wing-003, Palava Phase-2, Lakeshore Green, Khoni, Dombivali (East) - 421204
+      </footer>
+    </div>
+
+    <script src="invoice.js"></script>
+  </body>
+</html>

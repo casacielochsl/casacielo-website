@@ -326,6 +326,7 @@ const renderMyBookings = () => {
         <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong> · ₹${escapeHtml(booking.amount || 0)}
         ${booking.purpose ? `<br /><span class="form-hint">${escapeHtml(booking.purpose)}</span>` : ''}
       </span>
+      <a class="action-btn" href="invoice.html?id=${booking.id}" target="_blank" rel="noopener">Invoice</a>
       <button class="action-btn" data-action="cancel" data-id="${booking.id}">Cancel</button>
     </div>
   `).join('');

@@ -21,21 +21,45 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
 
+const LETTERHEAD_BG = '#3d5a73';
+
+const letterheadHeader = () => `
+  <div style="background-color:${LETTERHEAD_BG}; padding:20px 24px;">
+    <table role="presentation" width="100%" style="border-collapse:collapse;">
+      <tr>
+        <td style="vertical-align:middle;">
+          <div style="font-family: Georgia, 'Times New Roman', serif; font-size:24px; font-weight:800; letter-spacing:0.02em; color:#ffffff;">CASA CIELO</div>
+          <div style="font-family: Georgia, 'Times New Roman', serif; font-size:13px; font-weight:700; color:#ffffff; margin-top:4px;">CO-OPERATIVE HOUSING SOCIETY LIMITED</div>
+          <div style="font-size:11px; color:#dbe6ee; margin-top:6px;">Regd. No.: TNA/KLN/HSG/(TC)33283/2021-22/2021 dated 14 MAY 2021</div>
+        </td>
+        <td style="width:60px; vertical-align:middle; text-align:right;">
+          <div style="width:52px; height:52px; border-radius:50%; border:2px solid #ffffff; text-align:center; line-height:48px; font-family: Georgia, serif; font-size:22px; font-weight:800; color:#ffffff;">C</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+`;
+
+const letterheadFooter = () => `
+  <div style="background-color:${LETTERHEAD_BG}; padding:12px 24px; text-align:center;">
+    <span style="color:#ffffff; font-size:11px; font-weight:700;">Address: Casa Cielo Survey No. 149/1 and 150/10, F-Wing-003, Palava Phase-2, Lakeshore Green, Khoni, Dombivali (East) - 421204</span>
+  </div>
+`;
+
 const emailShell = (title, bodyHtml) => `
-  <div style="font-family: Arial, sans-serif; background:#07111f; padding:32px 16px;">
-    <div style="max-width:520px; margin:0 auto; background:#0f2038; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);">
-      <div style="background-color:#2f84ff; background-image:linear-gradient(135deg,#5ad0ff,#2f84ff); padding:20px 24px; color:#ffffff; font-weight:800; letter-spacing:0.04em; text-transform:uppercase;">
-        <span style="color:#ffffff;">Casa Cielo</span>
-      </div>
-      <div style="padding:24px; color:#eaf2ff; line-height:1.6;">
-        <h2 style="margin:0 0 12px; color:#eaf2ff;">${escapeHtml(title)}</h2>
+  <div style="font-family: Arial, sans-serif; background:#e8edf0; padding:32px 16px;">
+    <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:10px; overflow:hidden; border:1px solid #d7dee3;">
+      ${letterheadHeader()}
+      <div style="padding:24px; color:#1a1a1a; line-height:1.6;">
+        <h2 style="margin:0 0 12px; color:#1a1a1a;">${escapeHtml(title)}</h2>
         ${bodyHtml}
       </div>
+      ${letterheadFooter()}
     </div>
   </div>
 `;
 
-const detailRow = (label, value) => `<tr><td style="padding:6px 12px 6px 0; color:#aab6cb; white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0; font-weight:700;">${escapeHtml(value)}</td></tr>`;
+const detailRow = (label, value) => `<tr><td style="padding:6px 12px 6px 0; color:#6b7a86; white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0; font-weight:700; color:#1a1a1a;">${escapeHtml(value)}</td></tr>`;
 
 const formatMoney = (amount, currency) => {
   const symbol = currency === 'INR' ? '₹' : `${currency} `;
@@ -60,18 +84,18 @@ const formatTimeRange = (timeRange) => {
 const invoiceTable = ({ date, slot, timeRange, amount, currency }) => {
   const range = formatTimeRange(timeRange);
   return `
-  <table style="width:100%; border-collapse:collapse; margin:16px 0; border:1px solid rgba(255,255,255,0.12); border-radius:8px; overflow:hidden;">
-    <tr style="background:rgba(255,255,255,0.06);">
-      <td style="padding:8px 12px; color:#aab6cb; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em;">Description</td>
-      <td style="padding:8px 12px; color:#aab6cb; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em; text-align:right;">Amount</td>
+  <table style="width:100%; border-collapse:collapse; margin:16px 0; border:1px solid #d7dee3; border-radius:8px; overflow:hidden;">
+    <tr style="background:#eef2f5;">
+      <td style="padding:8px 12px; color:#6b7a86; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em;">Description</td>
+      <td style="padding:8px 12px; color:#6b7a86; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em; text-align:right;">Amount</td>
     </tr>
     <tr>
-      <td style="padding:8px 12px;">Community Hall — ${escapeHtml(date)} (${escapeHtml(slot)}${range ? `, ${escapeHtml(range)}` : ''})</td>
-      <td style="padding:8px 12px; text-align:right;">${formatMoney(amount, currency)}</td>
+      <td style="padding:8px 12px; color:#1a1a1a;">Community Hall — ${escapeHtml(date)} (${escapeHtml(slot)}${range ? `, ${escapeHtml(range)}` : ''})</td>
+      <td style="padding:8px 12px; text-align:right; color:#1a1a1a;">${formatMoney(amount, currency)}</td>
     </tr>
-    <tr style="border-top:1px solid rgba(255,255,255,0.12); font-weight:800;">
-      <td style="padding:8px 12px;">Total</td>
-      <td style="padding:8px 12px; text-align:right;">${formatMoney(amount, currency)}</td>
+    <tr style="border-top:1px solid #d7dee3; font-weight:800;">
+      <td style="padding:8px 12px; color:#1a1a1a;">Total</td>
+      <td style="padding:8px 12px; text-align:right; color:#1a1a1a;">${formatMoney(amount, currency)}</td>
     </tr>
   </table>
 `;
@@ -82,7 +106,11 @@ const sendResetEmail = ({ to, resetUrl }) => getTransporter().sendMail({
   to,
   subject: 'Casa Cielo admin password reset',
   text: `Reset your Casa Cielo admin password using this link (valid for 30 minutes):\n\n${resetUrl}\n\nIf you didn't request this, you can ignore this email.`,
-  html: `<p>Reset your Casa Cielo admin password using the link below (valid for 30 minutes):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, you can ignore this email.</p>`
+  html: emailShell('Password Reset', `
+    <p>Reset your Casa Cielo admin password using the link below (valid for 30 minutes):</p>
+    <p><a href="${resetUrl}">${resetUrl}</a></p>
+    <p>If you didn't request this, you can ignore this email.</p>
+  `)
 });
 
 const sendBookingConfirmationEmail = ({ to, memberName, flat, wing, date, slot, purpose, timeRange, amount, currency, invoiceNo }) => getTransporter().sendMail({

@@ -290,6 +290,7 @@ const renderBookings = (bookingsList) => {
         <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}${booking.timeRange ? ` (${escapeHtml(booking.timeRange)})` : ''}</strong> · ₹${escapeHtml(booking.amount || 0)}<br />
         <span class="form-hint">Flat ${escapeHtml(booking.memberFlat)} · ${escapeHtml(booking.memberName)}${booking.purpose ? ` · ${escapeHtml(booking.purpose)}` : ''}</span>
       </span>
+      <a class="action-btn" href="invoice.html?id=${booking.id}" target="_blank" rel="noopener">Invoice</a>
       <button class="action-btn" data-action="delete" data-id="${booking.id}">Cancel</button>
     </div>
   `).join('');
