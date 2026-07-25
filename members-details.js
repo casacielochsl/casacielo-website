@@ -4,7 +4,8 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 
 let myMemberId = null;
 let allBookings = [];
-let hallRates = { morning: 0, afternoon: 0, evening: 0, fullDay: 0, currency: 'INR' };
+const EMPTY_SLOT_RATE = { rate: 0, start: '', end: '' };
+let hallRates = { morning: EMPTY_SLOT_RATE, afternoon: EMPTY_SLOT_RATE, evening: EMPTY_SLOT_RATE, fullDay: EMPTY_SLOT_RATE, currency: 'INR' };
 const RATE_KEYS = { Morning: 'morning', Afternoon: 'afternoon', Evening: 'evening', 'Full Day': 'fullDay' };
 let selectedDate = null;
 const today = new Date();
@@ -19,6 +20,21 @@ const setText = (id, value) => {
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
+
+const formatTime12h = (value) => {
+  const [hourStr, minute] = String(value || '').split(':');
+  const hour = Number(hourStr);
+  if (!Number.isFinite(hour)) return '';
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${minute} ${period}`;
+};
+
+const formatSlotOption = (slot) => {
+  const entry = hallRates[RATE_KEYS[slot]] || EMPTY_SLOT_RATE;
+  const timeLabel = entry.start && entry.end ? ` (${formatTime12h(entry.start)}-${formatTime12h(entry.end)})` : '';
+  return `${slot}${timeLabel} — ₹${entry.rate || 0}`;
+};
 
 const api = async (path, options = {}) => {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -242,7 +258,7 @@ const showBookingFormFor = (dateStr) => {
   if (hint) hint.textContent = `Booking for ${dateStr}:`;
   if (dateInput) dateInput.value = dateStr;
   if (slotSelect) {
-    slotSelect.innerHTML = available.map((slot) => `<option value="${slot}">${slot} — ₹${hallRates[RATE_KEYS[slot]] || 0}</option>`).join('');
+    slotSelect.innerHTML = available.map((slot) => `<option value="${slot}">${formatSlotOption(slot)}</option>`).join('');
   }
   if (form) form.hidden = false;
 };
