@@ -11,6 +11,7 @@ const toBooking = (doc, viewerRole) => {
     purpose: doc.purpose || '',
     amount: doc.amount ?? 0,
     currency: doc.currency || 'INR',
+    timeRange: doc.timeRange || '',
     createdAt: doc.createdAt
   };
   if (viewerRole === 'admin') {

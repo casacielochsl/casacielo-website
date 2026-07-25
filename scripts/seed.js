@@ -14,7 +14,10 @@ async function main() {
   const db = await getDb();
 
   await db.collection('admins').createIndex({ username: 1 }, { unique: true });
-  await db.collection('members').createIndex({ flatKey: 1 }, { unique: true });
+  // Flat numbers only need to be unique within a wing (A-701 and F-701 can
+  // both exist), so the old flatKey-only unique index has to go first.
+  await db.collection('members').dropIndex('flatKey_1').catch(() => {});
+  await db.collection('members').createIndex({ wing: 1, flatKey: 1 }, { unique: true });
   await db.collection('members').createIndex({ id: 1 }, { unique: true });
   await db.collection('bookings').createIndex({ id: 1 }, { unique: true });
   await db.collection('bookings').createIndex({ date: 1 });

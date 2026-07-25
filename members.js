@@ -6,17 +6,18 @@ const message = document.getElementById('loginMessage');
 form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const flat = document.getElementById('flatInput').value.trim();
+  const wing = document.getElementById('wingInput').value;
   const password = document.getElementById('passwordInput').value.trim();
 
   try {
     const res = await fetch(`${API_BASE}/auth/member-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ flat, password })
+      body: JSON.stringify({ flat, wing, password })
     });
 
     if (!res.ok) {
-      message.textContent = 'Invalid flat number or password. Please try again.';
+      message.textContent = 'Invalid flat number, wing, or password. Please try again.';
       message.style.color = '#ff8d8d';
       return;
     }

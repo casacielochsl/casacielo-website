@@ -26,6 +26,7 @@
           <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
           <button class="dashboard-nav-item" data-section="events" type="button">Upcoming Events</button>
           <button class="dashboard-nav-item" data-section="bookings" type="button">Hall Bookings</button>
+          <button class="dashboard-nav-item" data-section="rates" type="button">Rate Card</button>
           <button class="dashboard-nav-item" data-section="admins" id="adminUsersNavItem" type="button" hidden>Admin Users</button>
         </nav>
       </aside>
@@ -160,40 +161,88 @@
               <div class="panel-header">
                 <div>
                   <p class="eyebrow">Admin Access</p>
-                  <h1>Hall Rate Card</h1>
-                </div>
-              </div>
-              <p class="form-hint">Per-booking rate charged to the member for each slot. An invoice with this amount is emailed automatically on booking.</p>
-              <form id="rate-card-form" class="notice-form">
-                <label class="field">
-                  <span>Morning (₹)</span>
-                  <input id="rateMorning" type="number" min="0" step="1" required />
-                </label>
-                <label class="field">
-                  <span>Afternoon (₹)</span>
-                  <input id="rateAfternoon" type="number" min="0" step="1" required />
-                </label>
-                <label class="field">
-                  <span>Evening (₹)</span>
-                  <input id="rateEvening" type="number" min="0" step="1" required />
-                </label>
-                <label class="field">
-                  <span>Full Day (₹)</span>
-                  <input id="rateFullDay" type="number" min="0" step="1" required />
-                </label>
-                <button class="btn btn-primary" type="submit">Save Rates</button>
-              </form>
-            </section>
-
-            <section class="admin-card">
-              <div class="panel-header">
-                <div>
-                  <p class="eyebrow">Admin Access</p>
                   <h1>Hall Bookings</h1>
                 </div>
               </div>
               <p class="form-hint">All community hall bookings made by members. Cancel a booking to free up that slot.</p>
               <div id="bookingList" class="notice-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="rates">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Hall Rate Card</h1>
+                </div>
+              </div>
+              <p class="form-hint">Time range and rate charged to the member for each slot. An invoice with this amount and time is emailed automatically on booking.</p>
+              <form id="rate-card-form" class="member-form">
+                <div class="form-section">
+                  <h3>Morning</h3>
+                  <label class="field">
+                    <span>Start Time</span>
+                    <input id="rateMorningStart" type="time" required />
+                  </label>
+                  <label class="field">
+                    <span>End Time</span>
+                    <input id="rateMorningEnd" type="time" required />
+                  </label>
+                  <label class="field field-full">
+                    <span>Rate (₹)</span>
+                    <input id="rateMorning" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+                <div class="form-section">
+                  <h3>Afternoon</h3>
+                  <label class="field">
+                    <span>Start Time</span>
+                    <input id="rateAfternoonStart" type="time" required />
+                  </label>
+                  <label class="field">
+                    <span>End Time</span>
+                    <input id="rateAfternoonEnd" type="time" required />
+                  </label>
+                  <label class="field field-full">
+                    <span>Rate (₹)</span>
+                    <input id="rateAfternoon" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+                <div class="form-section">
+                  <h3>Evening</h3>
+                  <label class="field">
+                    <span>Start Time</span>
+                    <input id="rateEveningStart" type="time" required />
+                  </label>
+                  <label class="field">
+                    <span>End Time</span>
+                    <input id="rateEveningEnd" type="time" required />
+                  </label>
+                  <label class="field field-full">
+                    <span>Rate (₹)</span>
+                    <input id="rateEvening" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+                <div class="form-section">
+                  <h3>Full Day</h3>
+                  <label class="field">
+                    <span>Start Time</span>
+                    <input id="rateFullDayStart" type="time" required />
+                  </label>
+                  <label class="field">
+                    <span>End Time</span>
+                    <input id="rateFullDayEnd" type="time" required />
+                  </label>
+                  <label class="field field-full">
+                    <span>Rate (₹)</span>
+                    <input id="rateFullDay" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+                <div class="form-buttons">
+                  <button class="btn btn-primary" type="submit">Save Rates</button>
+                </div>
+              </form>
             </section>
           </section>
 

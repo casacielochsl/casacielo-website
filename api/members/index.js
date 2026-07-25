@@ -25,15 +25,16 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (!body.flat || !body.password) {
-      sendJson(res, 400, { error: 'Flat number and password are required' });
+    if (!body.flat || !body.wing || !body.password) {
+      sendJson(res, 400, { error: 'Flat number, wing, and password are required' });
       return;
     }
 
     const flatKey = normalizeFlatKey(body.flat);
-    const clash = await members.findOne({ flatKey });
+    // Flat numbers only need to be unique within a wing (A-701 and F-701 can both exist).
+    const clash = await members.findOne({ flatKey, wing: body.wing });
     if (clash) {
-      sendJson(res, 409, { error: `Flat ${body.flat} already exists` });
+      sendJson(res, 409, { error: `Flat ${body.flat} in ${body.wing} already exists` });
       return;
     }
 

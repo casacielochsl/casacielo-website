@@ -1,13 +1,30 @@
 const SLOT_KEYS = { Morning: 'morning', Afternoon: 'afternoon', Evening: 'evening', 'Full Day': 'fullDay' };
 
-const toRates = (doc) => ({
-  currency: doc?.currency || 'INR',
-  morning: doc?.morning ?? 0,
-  afternoon: doc?.afternoon ?? 0,
-  evening: doc?.evening ?? 0,
-  fullDay: doc?.fullDay ?? 0
+const DEFAULT_SLOT_TIMES = {
+  morning: { start: '09:00', end: '13:00' },
+  afternoon: { start: '14:00', end: '18:00' },
+  evening: { start: '18:00', end: '22:00' },
+  fullDay: { start: '09:00', end: '22:00' }
+};
+
+const toSlotRate = (doc, key) => ({
+  rate: doc?.[key]?.rate ?? 0,
+  start: doc?.[key]?.start || DEFAULT_SLOT_TIMES[key].start,
+  end: doc?.[key]?.end || DEFAULT_SLOT_TIMES[key].end
 });
 
-const rateForSlot = (rates, slot) => rates[SLOT_KEYS[slot]] ?? 0;
+const toRates = (doc) => ({
+  currency: doc?.currency || 'INR',
+  morning: toSlotRate(doc, 'morning'),
+  afternoon: toSlotRate(doc, 'afternoon'),
+  evening: toSlotRate(doc, 'evening'),
+  fullDay: toSlotRate(doc, 'fullDay')
+});
 
-module.exports = { SLOT_KEYS, toRates, rateForSlot };
+const rateForSlot = (rates, slot) => rates[SLOT_KEYS[slot]]?.rate ?? 0;
+const timeRangeForSlot = (rates, slot) => {
+  const entry = rates[SLOT_KEYS[slot]];
+  return entry ? `${entry.start}-${entry.end}` : '';
+};
+
+module.exports = { SLOT_KEYS, DEFAULT_SLOT_TIMES, toRates, rateForSlot, timeRangeForSlot };

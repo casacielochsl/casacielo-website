@@ -58,18 +58,19 @@ const memberLogin = async (req, res) => {
   }
 
   const flat = (body.flat || '').trim();
+  const wing = (body.wing || '').trim();
   const password = body.password || '';
 
-  if (!flat || !password) {
-    sendJson(res, 400, { error: 'Flat number and password are required' });
+  if (!flat || !wing || !password) {
+    sendJson(res, 400, { error: 'Flat number, wing, and password are required' });
     return;
   }
 
   const db = await getDb();
-  const member = await db.collection('members').findOne({ flatKey: normalizeFlatKey(flat) });
+  const member = await db.collection('members').findOne({ flatKey: normalizeFlatKey(flat), wing });
 
   if (!member || !(await verifyPassword(password, member.passwordHash))) {
-    sendJson(res, 401, { error: 'Invalid flat number or password' });
+    sendJson(res, 401, { error: 'Invalid flat number, wing, or password' });
     return;
   }
 

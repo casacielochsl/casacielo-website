@@ -2,7 +2,7 @@ const { getDb, nextSequence } = require('../_lib/db');
 const { readSession, requireMemberSession, requireAdminSession, ADMIN_COOKIE, MEMBER_COOKIE } = require('../_lib/auth');
 const { readJsonBody, sendJson } = require('../_lib/http');
 const { SLOTS, toBooking, hasConflict } = require('../_lib/bookings');
-const { toRates, rateForSlot } = require('../_lib/rates');
+const { toRates, rateForSlot, timeRangeForSlot, DEFAULT_SLOT_TIMES } = require('../_lib/rates');
 const { sendBookingConfirmationEmail, sendBookingManagerNotificationEmail } = require('../_lib/mailer');
 
 const RATES_ID = 'hallRates';
@@ -46,13 +46,19 @@ module.exports = async (req, res) => {
         const num = Number(value);
         return Number.isFinite(num) && num >= 0 ? num : 0;
       };
+      const isValidTime = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value || '');
+      const toSlotUpdate = (slotBody, key) => ({
+        rate: toNonNegativeNumber(slotBody && slotBody.rate),
+        start: isValidTime(slotBody && slotBody.start) ? slotBody.start : DEFAULT_SLOT_TIMES[key].start,
+        end: isValidTime(slotBody && slotBody.end) ? slotBody.end : DEFAULT_SLOT_TIMES[key].end
+      });
 
       const update = {
         currency: (body.currency || 'INR').trim(),
-        morning: toNonNegativeNumber(body.morning),
-        afternoon: toNonNegativeNumber(body.afternoon),
-        evening: toNonNegativeNumber(body.evening),
-        fullDay: toNonNegativeNumber(body.fullDay)
+        morning: toSlotUpdate(body.morning, 'morning'),
+        afternoon: toSlotUpdate(body.afternoon, 'afternoon'),
+        evening: toSlotUpdate(body.evening, 'evening'),
+        fullDay: toSlotUpdate(body.fullDay, 'fullDay')
       };
 
       await db.collection('settings').updateOne({ _id: RATES_ID }, { $set: update }, { upsert: true });
@@ -117,6 +123,7 @@ module.exports = async (req, res) => {
     const ratesDoc = await db.collection('settings').findOne({ _id: RATES_ID });
     const rates = toRates(ratesDoc);
     const amount = rateForSlot(rates, slot);
+    const timeRange = timeRangeForSlot(rates, slot);
 
     const id = await nextSequence(db, 'bookings');
     const now = new Date();
@@ -124,6 +131,7 @@ module.exports = async (req, res) => {
       id,
       date,
       slot,
+      timeRange,
       memberId: member.id,
       memberName: member.name,
       memberFlat: member.flat,
@@ -141,12 +149,12 @@ module.exports = async (req, res) => {
     try {
       if (member.email) {
         await sendBookingConfirmationEmail({
-          to: member.email, memberName: member.name, flat: member.flat, date, slot, purpose,
+          to: member.email, memberName: member.name, flat: member.flat, wing: member.wing, date, slot, purpose, timeRange,
           amount, currency: rates.currency, invoiceNo: id
         });
       }
       await sendBookingManagerNotificationEmail({
-        to: managerEmail, memberName: member.name, flat: member.flat, date, slot, purpose,
+        to: managerEmail, memberName: member.name, flat: member.flat, wing: member.wing, date, slot, purpose, timeRange,
         contact: member.contact, email: member.email, amount, currency: rates.currency, invoiceNo: id
       });
     } catch (error) {

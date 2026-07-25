@@ -287,7 +287,7 @@ const renderBookings = (bookingsList) => {
   bookingList.innerHTML = bookingsList.map((booking) => `
     <div class="notice-item">
       <span class="notice-text">
-        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong> · ₹${escapeHtml(booking.amount || 0)}<br />
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}${booking.timeRange ? ` (${escapeHtml(booking.timeRange)})` : ''}</strong> · ₹${escapeHtml(booking.amount || 0)}<br />
         <span class="form-hint">Flat ${escapeHtml(booking.memberFlat)} · ${escapeHtml(booking.memberName)}${booking.purpose ? ` · ${escapeHtml(booking.purpose)}` : ''}</span>
       </span>
       <button class="action-btn" data-action="delete" data-id="${booking.id}">Cancel</button>
@@ -317,27 +317,32 @@ bookingList?.addEventListener('click', async (event) => {
 
 // --- Hall Rate Card ---
 const rateCardForm = document.getElementById('rate-card-form');
+const RATE_SLOT_KEYS = ['morning', 'afternoon', 'evening', 'fullDay'];
+const rateFieldId = (key) => key.charAt(0).toUpperCase() + key.slice(1);
 
 const fetchRates = async () => {
   const data = await api('/bookings?resource=rates');
-  document.getElementById('rateMorning').value = data.rates.morning;
-  document.getElementById('rateAfternoon').value = data.rates.afternoon;
-  document.getElementById('rateEvening').value = data.rates.evening;
-  document.getElementById('rateFullDay').value = data.rates.fullDay;
+  RATE_SLOT_KEYS.forEach((key) => {
+    const suffix = rateFieldId(key);
+    document.getElementById(`rate${suffix}`).value = data.rates[key].rate;
+    document.getElementById(`rate${suffix}Start`).value = data.rates[key].start;
+    document.getElementById(`rate${suffix}End`).value = data.rates[key].end;
+  });
 };
 
 rateCardForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   try {
-    await api('/bookings?resource=rates', {
-      method: 'PUT',
-      body: JSON.stringify({
-        morning: document.getElementById('rateMorning').value,
-        afternoon: document.getElementById('rateAfternoon').value,
-        evening: document.getElementById('rateEvening').value,
-        fullDay: document.getElementById('rateFullDay').value
-      })
+    const body = {};
+    RATE_SLOT_KEYS.forEach((key) => {
+      const suffix = rateFieldId(key);
+      body[key] = {
+        rate: document.getElementById(`rate${suffix}`).value,
+        start: document.getElementById(`rate${suffix}Start`).value,
+        end: document.getElementById(`rate${suffix}End`).value
+      };
     });
+    await api('/bookings?resource=rates', { method: 'PUT', body: JSON.stringify(body) });
     alert('Rate card saved.');
   } catch (error) {
     alert(error.message || 'Failed to save rate card');

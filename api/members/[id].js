@@ -43,10 +43,12 @@ module.exports = async (req, res) => {
     }
 
     const flatKey = body.flat ? normalizeFlatKey(body.flat) : existing.flatKey;
-    if (flatKey !== existing.flatKey) {
-      const clash = await members.findOne({ flatKey, id: { $ne: id } });
+    const newWing = body.wing ?? existing.wing;
+    // Flat numbers only need to be unique within a wing, so re-check whenever either changes.
+    if (flatKey !== existing.flatKey || newWing !== existing.wing) {
+      const clash = await members.findOne({ flatKey, wing: newWing, id: { $ne: id } });
       if (clash) {
-        sendJson(res, 409, { error: `Flat ${body.flat} already exists` });
+        sendJson(res, 409, { error: `Flat ${body.flat ?? existing.flat} in ${newWing} already exists` });
         return;
       }
     }
