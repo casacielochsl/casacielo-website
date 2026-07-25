@@ -10,32 +10,27 @@
     <link rel="stylesheet" href="admin.css" />
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="index.html">
-        <span class="brand-mark">C</span>
-        <span>Casa Cielo</span>
-      </a>
-      <nav class="nav-links" aria-label="Admin list navigation">
-        <a href="index.html">Home</a>
-        <a href="members.html">Member Portal</a>
-        <a href="admin.html" class="active">Admin</a>
-      </nav>
-    </header>
+    <div class="dashboard-shell">
+      <aside class="dashboard-sidebar">
+        <a class="sidebar-brand" href="index.html">
+          <span class="brand-mark">C</span>
+          <span>Casa Cielo</span>
+        </a>
+        <nav class="sidebar-subnav" aria-label="Site navigation">
+          <a href="index.html">Home</a>
+          <a href="members.html">Member Portal</a>
+        </nav>
+        <nav class="dashboard-nav">
+          <button class="dashboard-nav-item active" data-section="dashboard" type="button">Dashboard</button>
+          <button class="dashboard-nav-item" data-section="members" type="button">Members</button>
+          <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
+          <button class="dashboard-nav-item" data-section="events" type="button">Upcoming Events</button>
+          <button class="dashboard-nav-item" data-section="bookings" type="button">Hall Bookings</button>
+          <button class="dashboard-nav-item" data-section="admins" id="adminUsersNavItem" type="button" hidden>Admin Users</button>
+        </nav>
+      </aside>
 
-    <main class="admin-shell">
-      <div class="dashboard-shell">
-        <aside class="dashboard-sidebar">
-          <nav class="dashboard-nav">
-            <button class="dashboard-nav-item active" data-section="dashboard" type="button">Dashboard</button>
-            <button class="dashboard-nav-item" data-section="members" type="button">Members</button>
-            <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
-            <button class="dashboard-nav-item" data-section="events" type="button">Upcoming Events</button>
-            <button class="dashboard-nav-item" data-section="bookings" type="button">Hall Bookings</button>
-            <button class="dashboard-nav-item" data-section="admins" id="adminUsersNavItem" type="button" hidden>Admin Users</button>
-          </nav>
-        </aside>
-
-        <div class="dashboard-main">
+      <div class="dashboard-main">
           <section class="dashboard-section active" data-section-panel="dashboard">
             <section class="admin-card">
               <div class="panel-header">
@@ -205,8 +200,6 @@
           </section>
         </div>
       </div>
-    </main>
-
     <script src="admin-list.js"></script>
   </body>
 </html>

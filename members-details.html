@@ -10,30 +10,25 @@
     <link rel="stylesheet" href="members-details.css" />
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="index.html">
-        <span class="brand-mark">C</span>
-        <span>Casa Cielo</span>
-      </a>
-      <nav class="nav-links" aria-label="Member details navigation">
-        <a href="index.html">Home</a>
-        <a href="members.html">Member Portal</a>
-        <a href="members-details.html" class="active">Member Dashboard</a>
-      </nav>
-    </header>
+    <div class="dashboard-shell">
+      <aside class="dashboard-sidebar">
+        <a class="sidebar-brand" href="index.html">
+          <span class="brand-mark">C</span>
+          <span>Casa Cielo</span>
+        </a>
+        <nav class="sidebar-subnav" aria-label="Site navigation">
+          <a href="index.html">Home</a>
+          <a href="members.html">Member Portal</a>
+        </nav>
+        <nav class="dashboard-nav">
+          <button class="dashboard-nav-item active" data-section="dashboard" type="button">Dashboard</button>
+          <button class="dashboard-nav-item" data-section="booking" type="button">Hall Booking</button>
+          <button class="dashboard-nav-item" data-section="dues" type="button">Dues</button>
+          <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
+        </nav>
+      </aside>
 
-    <main class="detail-shell">
-      <div class="dashboard-shell">
-        <aside class="dashboard-sidebar">
-          <nav class="dashboard-nav">
-            <button class="dashboard-nav-item active" data-section="dashboard" type="button">Dashboard</button>
-            <button class="dashboard-nav-item" data-section="booking" type="button">Hall Booking</button>
-            <button class="dashboard-nav-item" data-section="dues" type="button">Dues</button>
-            <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
-          </nav>
-        </aside>
-
-        <div class="dashboard-main">
+      <div class="dashboard-main">
           <section class="dashboard-section active" data-section-panel="dashboard">
             <section class="detail-card primary-card">
               <p class="eyebrow">Primary Member</p>
@@ -155,8 +150,6 @@
           </section>
         </div>
       </div>
-    </main>
-
     <script src="members-details.js"></script>
   </body>
 </html>
