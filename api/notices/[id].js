@@ -34,6 +34,7 @@ module.exports = async (req, res) => {
 
     const update = {
       message: body.message !== undefined ? String(body.message).trim() : existing.message,
+      date: body.date !== undefined ? body.date : existing.date,
       active: body.active !== undefined ? Boolean(body.active) : existing.active,
       updatedAt: new Date()
     };

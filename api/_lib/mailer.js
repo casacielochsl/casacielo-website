@@ -37,6 +37,28 @@ const emailShell = (title, bodyHtml) => `
 
 const detailRow = (label, value) => `<tr><td style="padding:6px 12px 6px 0; color:#aab6cb; white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0; font-weight:700;">${escapeHtml(value)}</td></tr>`;
 
+const formatMoney = (amount, currency) => {
+  const symbol = currency === 'INR' ? '₹' : `${currency} `;
+  return `${symbol}${Number(amount || 0).toLocaleString('en-IN')}`;
+};
+
+const invoiceTable = ({ date, slot, amount, currency }) => `
+  <table style="width:100%; border-collapse:collapse; margin:16px 0; border:1px solid rgba(255,255,255,0.12); border-radius:8px; overflow:hidden;">
+    <tr style="background:rgba(255,255,255,0.06);">
+      <td style="padding:8px 12px; color:#aab6cb; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em;">Description</td>
+      <td style="padding:8px 12px; color:#aab6cb; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em; text-align:right;">Amount</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;">Community Hall — ${escapeHtml(date)} (${escapeHtml(slot)})</td>
+      <td style="padding:8px 12px; text-align:right;">${formatMoney(amount, currency)}</td>
+    </tr>
+    <tr style="border-top:1px solid rgba(255,255,255,0.12); font-weight:800;">
+      <td style="padding:8px 12px;">Total</td>
+      <td style="padding:8px 12px; text-align:right;">${formatMoney(amount, currency)}</td>
+    </tr>
+  </table>
+`;
+
 const sendResetEmail = ({ to, resetUrl }) => getTransporter().sendMail({
   from: process.env.SMTP_FROM || process.env.SMTP_USER,
   to,
@@ -45,31 +67,34 @@ const sendResetEmail = ({ to, resetUrl }) => getTransporter().sendMail({
   html: `<p>Reset your Casa Cielo admin password using the link below (valid for 30 minutes):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, you can ignore this email.</p>`
 });
 
-const sendBookingConfirmationEmail = ({ to, memberName, flat, date, slot, purpose }) => getTransporter().sendMail({
+const sendBookingConfirmationEmail = ({ to, memberName, flat, date, slot, purpose, amount, currency, invoiceNo }) => getTransporter().sendMail({
   from: process.env.SMTP_FROM || process.env.SMTP_USER,
   to,
-  subject: `Community Hall booking confirmed — ${date} (${slot})`,
-  text: `Hi ${memberName},\n\nYour Community Hall booking is confirmed.\nDate: ${date}\nSlot: ${slot}\nFlat: ${flat}${purpose ? `\nPurpose: ${purpose}` : ''}\n\nSee you there!\nCasa Cielo Management`,
+  subject: `Hall Booking Invoice #INV-${String(invoiceNo).padStart(4, '0')} — ${date} (${slot})`,
+  text: `Hi ${memberName},\n\nYour Community Hall booking is confirmed.\nInvoice #: INV-${String(invoiceNo).padStart(4, '0')}\nDate: ${date}\nSlot: ${slot}\nFlat: ${flat}${purpose ? `\nPurpose: ${purpose}` : ''}\nAmount: ${formatMoney(amount, currency)}\n\nSee you there!\nCasa Cielo Management`,
   html: emailShell('Booking Confirmed', `
     <p>Hi ${escapeHtml(memberName)},</p>
     <p>Your Community Hall booking is confirmed:</p>
     <table style="width:100%; border-collapse:collapse; margin:16px 0;">
+      ${detailRow('Invoice #', `INV-${String(invoiceNo).padStart(4, '0')}`)}
       ${detailRow('Date', date)}
       ${detailRow('Slot', slot)}
       ${detailRow('Flat', flat)}
       ${purpose ? detailRow('Purpose', purpose) : ''}
     </table>
+    ${invoiceTable({ date, slot, amount, currency })}
     <p>See you there!</p>
   `)
 });
 
-const sendBookingManagerNotificationEmail = ({ to, memberName, flat, date, slot, purpose, contact, email }) => getTransporter().sendMail({
+const sendBookingManagerNotificationEmail = ({ to, memberName, flat, date, slot, purpose, contact, email, amount, currency, invoiceNo }) => getTransporter().sendMail({
   from: process.env.SMTP_FROM || process.env.SMTP_USER,
   to,
   subject: `New hall booking — ${date} (${slot}) — Flat ${flat}`,
-  text: `New Community Hall booking:\nMember: ${memberName} (Flat ${flat})\nDate: ${date}\nSlot: ${slot}${purpose ? `\nPurpose: ${purpose}` : ''}\nContact: ${contact || '—'}\nEmail: ${email || '—'}`,
+  text: `New Community Hall booking:\nInvoice #: INV-${String(invoiceNo).padStart(4, '0')}\nMember: ${memberName} (Flat ${flat})\nDate: ${date}\nSlot: ${slot}${purpose ? `\nPurpose: ${purpose}` : ''}\nAmount: ${formatMoney(amount, currency)}\nContact: ${contact || '—'}\nEmail: ${email || '—'}`,
   html: emailShell('New Hall Booking', `
     <table style="width:100%; border-collapse:collapse; margin:16px 0;">
+      ${detailRow('Invoice #', `INV-${String(invoiceNo).padStart(4, '0')}`)}
       ${detailRow('Member', `${memberName} (Flat ${flat})`)}
       ${detailRow('Date', date)}
       ${detailRow('Slot', slot)}
@@ -77,6 +102,7 @@ const sendBookingManagerNotificationEmail = ({ to, memberName, flat, date, slot,
       ${detailRow('Contact', contact || '—')}
       ${detailRow('Email', email || '—')}
     </table>
+    ${invoiceTable({ date, slot, amount, currency })}
   `)
 });
 

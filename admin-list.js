@@ -133,7 +133,7 @@ const renderNotices = (notices) => {
   }
   noticeList.innerHTML = notices.map((notice) => `
     <div class="notice-item">
-      <span class="notice-text">${escapeHtml(notice.message)}</span>
+      <span class="notice-text">${escapeHtml(notice.message)}${notice.date ? `<br /><span class="form-hint">Shows until ${escapeHtml(notice.date)}</span>` : ''}</span>
       <label class="notice-toggle">
         <input type="checkbox" data-action="toggle" data-id="${notice.id}" ${notice.active ? 'checked' : ''} />
         <span>Active</span>
@@ -155,9 +155,11 @@ noticeForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const message = noticeMessageInput.value.trim();
   if (!message) return;
+  const noticeDateInput = document.getElementById('noticeDate');
   try {
-    await api('/notices', { method: 'POST', body: JSON.stringify({ message }) });
+    await api('/notices', { method: 'POST', body: JSON.stringify({ message, date: noticeDateInput.value }) });
     noticeMessageInput.value = '';
+    noticeDateInput.value = '';
     await fetchNotices();
     updateStats();
   } catch (error) {
@@ -285,7 +287,7 @@ const renderBookings = (bookingsList) => {
   bookingList.innerHTML = bookingsList.map((booking) => `
     <div class="notice-item">
       <span class="notice-text">
-        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong><br />
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong> · ₹${escapeHtml(booking.amount || 0)}<br />
         <span class="form-hint">Flat ${escapeHtml(booking.memberFlat)} · ${escapeHtml(booking.memberName)}${booking.purpose ? ` · ${escapeHtml(booking.purpose)}` : ''}</span>
       </span>
       <button class="action-btn" data-action="delete" data-id="${booking.id}">Cancel</button>
@@ -310,6 +312,35 @@ bookingList?.addEventListener('click', async (event) => {
     updateStats();
   } catch (error) {
     alert(error.message || 'Failed to cancel booking');
+  }
+});
+
+// --- Hall Rate Card ---
+const rateCardForm = document.getElementById('rate-card-form');
+
+const fetchRates = async () => {
+  const data = await api('/bookings?resource=rates');
+  document.getElementById('rateMorning').value = data.rates.morning;
+  document.getElementById('rateAfternoon').value = data.rates.afternoon;
+  document.getElementById('rateEvening').value = data.rates.evening;
+  document.getElementById('rateFullDay').value = data.rates.fullDay;
+};
+
+rateCardForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  try {
+    await api('/bookings?resource=rates', {
+      method: 'PUT',
+      body: JSON.stringify({
+        morning: document.getElementById('rateMorning').value,
+        afternoon: document.getElementById('rateAfternoon').value,
+        evening: document.getElementById('rateEvening').value,
+        fullDay: document.getElementById('rateFullDay').value
+      })
+    });
+    alert('Rate card saved.');
+  } catch (error) {
+    alert(error.message || 'Failed to save rate card');
   }
 });
 
@@ -410,6 +441,11 @@ const init = async () => {
   }
   try {
     await fetchBookings();
+  } catch (error) {
+    // non-fatal
+  }
+  try {
+    await fetchRates();
   } catch (error) {
     // non-fatal
   }

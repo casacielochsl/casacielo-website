@@ -8,9 +8,12 @@ module.exports = async (req, res) => {
   const events = db.collection('events');
 
   if (req.method === 'GET') {
-    // Public: only active events (for the homepage). Logged-in admins see everything.
+    // Public: only active, not-yet-past events (for the homepage). Logged-in
+    // admins see everything, including past/inactive, for management.
     const adminSession = readSession(req, ADMIN_COOKIE);
-    const query = adminSession && adminSession.role === 'admin' ? {} : { active: true };
+    const isAdmin = adminSession && adminSession.role === 'admin';
+    const today = new Date().toISOString().slice(0, 10);
+    const query = isAdmin ? {} : { active: true, $or: [{ date: '' }, { date: { $gte: today } }] };
     const docs = await events.find(query).sort({ date: 1 }).toArray();
     sendJson(res, 200, { events: docs.map(toEvent) });
     return;

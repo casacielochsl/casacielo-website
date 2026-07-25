@@ -4,6 +4,8 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 
 let myMemberId = null;
 let allBookings = [];
+let hallRates = { morning: 0, afternoon: 0, evening: 0, fullDay: 0, currency: 'INR' };
+const RATE_KEYS = { Morning: 'morning', Afternoon: 'afternoon', Evening: 'evening', 'Full Day': 'fullDay' };
 let selectedDate = null;
 const today = new Date();
 let viewYear = today.getFullYear();
@@ -239,7 +241,9 @@ const showBookingFormFor = (dateStr) => {
 
   if (hint) hint.textContent = `Booking for ${dateStr}:`;
   if (dateInput) dateInput.value = dateStr;
-  if (slotSelect) slotSelect.innerHTML = available.map((slot) => `<option value="${slot}">${slot}</option>`).join('');
+  if (slotSelect) {
+    slotSelect.innerHTML = available.map((slot) => `<option value="${slot}">${slot} — ₹${hallRates[RATE_KEYS[slot]] || 0}</option>`).join('');
+  }
   if (form) form.hidden = false;
 };
 
@@ -303,7 +307,7 @@ const renderMyBookings = () => {
   container.innerHTML = mine.map((booking) => `
     <div class="booking-item">
       <span class="notice-text">
-        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong>
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong> · ₹${escapeHtml(booking.amount || 0)}
         ${booking.purpose ? `<br /><span class="form-hint">${escapeHtml(booking.purpose)}</span>` : ''}
       </span>
       <button class="action-btn" data-action="cancel" data-id="${booking.id}">Cancel</button>
@@ -331,6 +335,11 @@ const fetchBookings = async () => {
   allBookings = data.bookings;
 };
 
+const fetchRates = async () => {
+  const data = await api('/bookings?resource=rates');
+  hallRates = data.rates;
+};
+
 const init = async () => {
   let member;
   try {
@@ -345,6 +354,12 @@ const init = async () => {
   try {
     const noticesData = await api('/notices');
     renderMemberNotices(noticesData.notices);
+  } catch (error) {
+    // non-fatal
+  }
+
+  try {
+    await fetchRates();
   } catch (error) {
     // non-fatal
   }

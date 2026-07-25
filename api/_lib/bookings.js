@@ -9,6 +9,8 @@ const toBooking = (doc, viewerRole) => {
     memberFlat: doc.memberFlat,
     memberId: doc.memberId,
     purpose: doc.purpose || '',
+    amount: doc.amount ?? 0,
+    currency: doc.currency || 'INR',
     createdAt: doc.createdAt
   };
   if (viewerRole === 'admin') {

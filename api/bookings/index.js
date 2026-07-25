@@ -1,8 +1,11 @@
 const { getDb, nextSequence } = require('../_lib/db');
-const { readSession, requireMemberSession, ADMIN_COOKIE, MEMBER_COOKIE } = require('../_lib/auth');
+const { readSession, requireMemberSession, requireAdminSession, ADMIN_COOKIE, MEMBER_COOKIE } = require('../_lib/auth');
 const { readJsonBody, sendJson } = require('../_lib/http');
 const { SLOTS, toBooking, hasConflict } = require('../_lib/bookings');
+const { toRates, rateForSlot } = require('../_lib/rates');
 const { sendBookingConfirmationEmail, sendBookingManagerNotificationEmail } = require('../_lib/mailer');
+
+const RATES_ID = 'hallRates';
 
 const requireAnySession = (req, res) => {
   const adminSession = readSession(req, ADMIN_COOKIE);
@@ -16,6 +19,50 @@ const requireAnySession = (req, res) => {
 module.exports = async (req, res) => {
   const db = await getDb();
   const bookings = db.collection('bookings');
+
+  // Rate card lives on this same route (as ?resource=rates) to avoid adding
+  // another Vercel function file — Hobby plan caps at 12 and this project
+  // was already at 11 before this feature.
+  if (req.query && req.query.resource === 'rates') {
+    if (req.method === 'GET') {
+      const doc = await db.collection('settings').findOne({ _id: RATES_ID });
+      sendJson(res, 200, { rates: toRates(doc) });
+      return;
+    }
+
+    if (req.method === 'PUT') {
+      const session = requireAdminSession(req, res);
+      if (!session) return;
+
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (error) {
+        sendJson(res, 400, { error: 'Invalid request body' });
+        return;
+      }
+
+      const toNonNegativeNumber = (value) => {
+        const num = Number(value);
+        return Number.isFinite(num) && num >= 0 ? num : 0;
+      };
+
+      const update = {
+        currency: (body.currency || 'INR').trim(),
+        morning: toNonNegativeNumber(body.morning),
+        afternoon: toNonNegativeNumber(body.afternoon),
+        evening: toNonNegativeNumber(body.evening),
+        fullDay: toNonNegativeNumber(body.fullDay)
+      };
+
+      await db.collection('settings').updateOne({ _id: RATES_ID }, { $set: update }, { upsert: true });
+      sendJson(res, 200, { rates: toRates(update) });
+      return;
+    }
+
+    sendJson(res, 405, { error: 'Method not allowed' });
+    return;
+  }
 
   if (req.method === 'GET') {
     const viewerRole = requireAnySession(req, res);
@@ -67,6 +114,10 @@ module.exports = async (req, res) => {
       return;
     }
 
+    const ratesDoc = await db.collection('settings').findOne({ _id: RATES_ID });
+    const rates = toRates(ratesDoc);
+    const amount = rateForSlot(rates, slot);
+
     const id = await nextSequence(db, 'bookings');
     const now = new Date();
     const doc = {
@@ -79,6 +130,8 @@ module.exports = async (req, res) => {
       memberEmail: member.email,
       memberContact: member.contact,
       purpose,
+      amount,
+      currency: rates.currency,
       createdAt: now,
       updatedAt: now
     };
@@ -87,11 +140,14 @@ module.exports = async (req, res) => {
     const managerEmail = process.env.HALL_MANAGER_EMAIL || 'manishtiwari@outlook.in';
     try {
       if (member.email) {
-        await sendBookingConfirmationEmail({ to: member.email, memberName: member.name, flat: member.flat, date, slot, purpose });
+        await sendBookingConfirmationEmail({
+          to: member.email, memberName: member.name, flat: member.flat, date, slot, purpose,
+          amount, currency: rates.currency, invoiceNo: id
+        });
       }
       await sendBookingManagerNotificationEmail({
         to: managerEmail, memberName: member.name, flat: member.flat, date, slot, purpose,
-        contact: member.contact, email: member.email
+        contact: member.contact, email: member.email, amount, currency: rates.currency, invoiceNo: id
       });
     } catch (error) {
       console.error('Failed to send booking emails:', error);
