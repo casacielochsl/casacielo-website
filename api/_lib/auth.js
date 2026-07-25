@@ -61,6 +61,16 @@ const verifyResetToken = (token) => {
   }
 };
 
+const requireSuperAdmin = (req, res) => {
+  const session = requireAdminSession(req, res);
+  if (!session) return null;
+  if (session.adminRole !== 'super-admin') {
+    sendJson(res, 403, { error: 'Super Admin access required' });
+    return null;
+  }
+  return session;
+};
+
 const requireMemberSession = (req, res) => {
   const session = readSession(req, MEMBER_COOKIE);
   if (!session || session.role !== 'member') {
@@ -78,6 +88,7 @@ module.exports = {
   setSessionCookie,
   readSession,
   requireAdminSession,
+  requireSuperAdmin,
   requireMemberSession,
   signResetToken,
   verifyResetToken

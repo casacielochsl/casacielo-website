@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Casa Cielo | Member Details</title>
+    <title>Casa Cielo | Member Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,63 +18,143 @@
       <nav class="nav-links" aria-label="Member details navigation">
         <a href="index.html">Home</a>
         <a href="members.html">Member Portal</a>
-        <a href="members-details.html" class="active">Member Details</a>
+        <a href="members-details.html" class="active">Member Dashboard</a>
       </nav>
     </header>
 
     <main class="detail-shell">
-      <section class="detail-card primary-card">
-        <p class="eyebrow">Primary Member</p>
-        <h1 id="primaryName">Loading member details…</h1>
-        <div class="meta-grid">
-          <div>
-            <span>Flat</span>
-            <strong id="detailFlat">-</strong>
-          </div>
-          <div>
-            <span>Wing</span>
-            <strong id="detailWing">-</strong>
-          </div>
-          <div>
-            <span>Floor</span>
-            <strong id="detailFloor">-</strong>
-          </div>
-          <div>
-            <span>Member Type</span>
-            <strong id="detailMemberType">-</strong>
-          </div>
-          <div>
-            <span>Status</span>
-            <strong id="detailStatus">-</strong>
-          </div>
-        </div>
-        <div class="contact-grid">
-          <div>
-            <span>Phone</span>
-            <strong id="detailPhone">-</strong>
-          </div>
-          <div>
-            <span>Email</span>
-            <strong id="detailEmail">-</strong>
-          </div>
-        </div>
-      </section>
+      <div class="dashboard-shell">
+        <aside class="dashboard-sidebar">
+          <nav class="dashboard-nav">
+            <button class="dashboard-nav-item active" data-section="dashboard" type="button">Dashboard</button>
+            <button class="dashboard-nav-item" data-section="booking" type="button">Hall Booking</button>
+            <button class="dashboard-nav-item" data-section="dues" type="button">Dues</button>
+            <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
+          </nav>
+        </aside>
 
-      <section class="detail-card">
-        <div class="section-heading">
-          <p class="eyebrow">Flat Residents</p>
-          <h2>Owner, co-owner and family members</h2>
-        </div>
-        <div id="familyMembers" class="family-list"></div>
-      </section>
+        <div class="dashboard-main">
+          <section class="dashboard-section active" data-section-panel="dashboard">
+            <section class="detail-card primary-card">
+              <p class="eyebrow">Primary Member</p>
+              <h1 id="primaryName">Loading member details…</h1>
+              <div class="meta-grid">
+                <div>
+                  <span>Flat</span>
+                  <strong id="detailFlat">-</strong>
+                </div>
+                <div>
+                  <span>Wing</span>
+                  <strong id="detailWing">-</strong>
+                </div>
+                <div>
+                  <span>Floor</span>
+                  <strong id="detailFloor">-</strong>
+                </div>
+                <div>
+                  <span>Member Type</span>
+                  <strong id="detailMemberType">-</strong>
+                </div>
+                <div>
+                  <span>Status</span>
+                  <strong id="detailStatus">-</strong>
+                </div>
+              </div>
+              <div class="contact-grid">
+                <div>
+                  <span>Phone</span>
+                  <strong id="detailPhone">-</strong>
+                </div>
+                <div>
+                  <span>Email</span>
+                  <strong id="detailEmail">-</strong>
+                </div>
+              </div>
+            </section>
 
-      <section class="detail-card">
-        <div class="section-heading">
-          <p class="eyebrow">Tenant Records</p>
-          <h2>Tenant and tenant members</h2>
+            <section class="detail-card">
+              <p class="eyebrow">Flat Residents</p>
+              <h2>Owner, co-owner and family members</h2>
+              <div id="familyMembers" class="family-list"></div>
+            </section>
+
+            <section class="detail-card">
+              <p class="eyebrow">Tenant Records</p>
+              <h2>Tenant and tenant members</h2>
+              <div id="tenantSection" class="tenant-section"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="booking">
+            <section class="detail-card">
+              <p class="eyebrow">Community Hall</p>
+              <h2>Book the Hall</h2>
+              <div class="calendar-header">
+                <button class="btn btn-secondary" type="button" id="calendarPrev">‹ Prev</button>
+                <strong id="calendarMonthLabel">-</strong>
+                <button class="btn btn-secondary" type="button" id="calendarNext">Next ›</button>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+              <p id="bookingFormHint" class="form-hint"></p>
+              <form id="booking-form" class="notice-form" hidden>
+                <label class="field">
+                  <span>Date</span>
+                  <input id="bookingDate" type="text" readonly />
+                </label>
+                <label class="field">
+                  <span>Slot</span>
+                  <select id="bookingSlot" required></select>
+                </label>
+                <label class="field field-full">
+                  <span>Purpose (optional)</span>
+                  <input id="bookingPurpose" type="text" placeholder="e.g. Birthday party" />
+                </label>
+                <button class="btn btn-primary" type="submit">Book Now</button>
+              </form>
+              <p id="bookingMessage" class="form-hint"></p>
+            </section>
+
+            <section class="detail-card">
+              <p class="eyebrow">Community Hall</p>
+              <h2>My Bookings</h2>
+              <div id="myBookingList" class="booking-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="dues">
+            <section class="detail-card">
+              <p class="eyebrow">Society Record</p>
+              <h2>Maintenance &amp; Dues</h2>
+              <div class="dues-grid">
+                <div>
+                  <span>Maintenance Status</span>
+                  <strong id="duesStatus">-</strong>
+                </div>
+                <div>
+                  <span>Last Payment</span>
+                  <strong id="duesLastPayment">-</strong>
+                </div>
+                <div>
+                  <span>Next Due</span>
+                  <strong id="duesNextDue">-</strong>
+                </div>
+                <div>
+                  <span>Visitor Pass</span>
+                  <strong id="duesVisitorPass">-</strong>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="notices">
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>Notice Board</h2>
+              <div id="memberNoticeList" class="notice-list"></div>
+            </section>
+          </section>
         </div>
-        <div id="tenantSection" class="tenant-section"></div>
-      </section>
+      </div>
     </main>
 
     <script src="members-details.js"></script>

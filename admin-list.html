@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Casa Cielo | Admin List</title>
+    <title>Casa Cielo | Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -23,90 +23,188 @@
     </header>
 
     <main class="admin-shell">
-      <section class="admin-card">
-        <div class="panel-header">
-          <div>
-            <p class="eyebrow">Admin Access</p>
-            <h1>Member List</h1>
-          </div>
-          <div class="panel-actions">
-            <a class="btn btn-primary" href="admin-management?mode=create">Create</a>
-            <a class="btn btn-secondary" href="admin.html">Back to Login</a>
-          </div>
-        </div>
+      <div class="dashboard-shell">
+        <aside class="dashboard-sidebar">
+          <nav class="dashboard-nav">
+            <button class="dashboard-nav-item active" data-section="dashboard" type="button">Dashboard</button>
+            <button class="dashboard-nav-item" data-section="members" type="button">Members</button>
+            <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
+            <button class="dashboard-nav-item" data-section="events" type="button">Upcoming Events</button>
+            <button class="dashboard-nav-item" data-section="bookings" type="button">Hall Bookings</button>
+            <button class="dashboard-nav-item" data-section="admins" id="adminUsersNavItem" type="button" hidden>Admin Users</button>
+          </nav>
+        </aside>
 
-        <div class="notice-board">
-          <h2>Notice Board</h2>
-          <p class="form-hint">Active notices scroll on the public homepage.</p>
-          <form id="notice-form" class="notice-form">
-            <label class="field field-full">
-              <span>New Notice</span>
-              <input id="noticeMessage" type="text" placeholder="e.g. Water supply interruption on July 25th" required />
-            </label>
-            <button class="btn btn-primary" type="submit">Add Notice</button>
-          </form>
-          <div id="noticeList" class="notice-list"></div>
-        </div>
+        <div class="dashboard-main">
+          <section class="dashboard-section active" data-section-panel="dashboard">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1 id="welcomeHeading">Dashboard</h1>
+                </div>
+                <div class="panel-actions">
+                  <a class="btn btn-secondary" href="admin.html">Back to Login</a>
+                </div>
+              </div>
+              <div class="stat-grid">
+                <div class="stat-tile"><strong id="statMembers">-</strong><span>Members</span></div>
+                <div class="stat-tile"><strong id="statNotices">-</strong><span>Active Notices</span></div>
+                <div class="stat-tile"><strong id="statEvents">-</strong><span>Upcoming Events</span></div>
+                <div class="stat-tile"><strong id="statBookings">-</strong><span>Hall Bookings</span></div>
+              </div>
+            </section>
+          </section>
 
-        <div class="notice-board">
-          <h2>Upcoming Events</h2>
-          <p class="form-hint">Active events with an image show in the Upcoming Events section on the public homepage.</p>
-          <form id="event-form" class="notice-form">
-            <label class="field">
-              <span>Title</span>
-              <input id="eventTitle" type="text" placeholder="e.g. Annual Day Celebration" required />
-            </label>
-            <label class="field">
-              <span>Date</span>
-              <input id="eventDate" type="date" />
-            </label>
-            <label class="field field-full">
-              <span>Description</span>
-              <textarea id="eventDescription" rows="2" placeholder="Short description shown under the event"></textarea>
-            </label>
-            <label class="field">
-              <span>Image</span>
-              <input id="eventImage" type="file" accept="image/*" />
-            </label>
-            <button class="btn btn-primary" type="submit">Add Event</button>
-          </form>
-          <div id="eventList" class="notice-list"></div>
-        </div>
+          <section class="dashboard-section" data-section-panel="members">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Member List</h1>
+                </div>
+                <div class="panel-actions">
+                  <a class="btn btn-primary" href="admin-management?mode=create">Create</a>
+                </div>
+              </div>
 
-        <div class="filter-bar">
-          <label class="field field-inline">
-            <span>Search</span>
-            <input id="filterSearch" type="text" placeholder="Flat, name, wing, type" />
-          </label>
-          <label class="field field-inline">
-            <span>Type</span>
-            <select id="filterType">
-              <option value="">All</option>
-              <option value="Owner">Owner</option>
-              <option value="Co-Owner">Co-Owner</option>
-              <option value="Family Member">Family Member</option>
-            </select>
-          </label>
-        </div>
+              <div class="filter-bar">
+                <label class="field field-inline">
+                  <span>Search</span>
+                  <input id="filterSearch" type="text" placeholder="Flat, name, wing, type" />
+                </label>
+                <label class="field field-inline">
+                  <span>Type</span>
+                  <select id="filterType">
+                    <option value="">All</option>
+                    <option value="Owner">Owner</option>
+                    <option value="Co-Owner">Co-Owner</option>
+                    <option value="Family Member">Family Member</option>
+                  </select>
+                </label>
+              </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Flat</th>
-                <th>Name</th>
-                <th>Wing</th>
-                <th>Floor</th>
-                <th>Type</th>
-                <th>Contact</th>
-                <th>Password</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="memberTableBody"></tbody>
-          </table>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Flat</th>
+                      <th>Name</th>
+                      <th>Wing</th>
+                      <th>Floor</th>
+                      <th>Type</th>
+                      <th>Contact</th>
+                      <th>Password</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="memberTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="notices">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Notice Board</h1>
+                </div>
+              </div>
+              <p class="form-hint">Active notices scroll on the public homepage.</p>
+              <form id="notice-form" class="notice-form">
+                <label class="field field-full">
+                  <span>New Notice</span>
+                  <input id="noticeMessage" type="text" placeholder="e.g. Water supply interruption on July 25th" required />
+                </label>
+                <button class="btn btn-primary" type="submit">Add Notice</button>
+              </form>
+              <div id="noticeList" class="notice-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="events">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Upcoming Events</h1>
+                </div>
+              </div>
+              <p class="form-hint">Active events with an image show in the Upcoming Events section on the public homepage.</p>
+              <form id="event-form" class="notice-form">
+                <label class="field">
+                  <span>Title</span>
+                  <input id="eventTitle" type="text" placeholder="e.g. Annual Day Celebration" required />
+                </label>
+                <label class="field">
+                  <span>Date</span>
+                  <input id="eventDate" type="date" />
+                </label>
+                <label class="field field-full">
+                  <span>Description</span>
+                  <textarea id="eventDescription" rows="2" placeholder="Short description shown under the event"></textarea>
+                </label>
+                <label class="field">
+                  <span>Image</span>
+                  <input id="eventImage" type="file" accept="image/*" />
+                </label>
+                <button class="btn btn-primary" type="submit">Add Event</button>
+              </form>
+              <div id="eventList" class="notice-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="bookings">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Hall Bookings</h1>
+                </div>
+              </div>
+              <p class="form-hint">All community hall bookings made by members. Cancel a booking to free up that slot.</p>
+              <div id="bookingList" class="notice-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="admins" id="adminsSectionPanel">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Super Admin</p>
+                  <h1>Admin Users</h1>
+                </div>
+              </div>
+              <p class="form-hint">Manager accounts handle day-to-day operations. Only Super Admins can manage other admin accounts.</p>
+              <form id="admin-account-form" class="notice-form">
+                <label class="field">
+                  <span>Username</span>
+                  <input id="newAdminUsername" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Password</span>
+                  <input id="newAdminPassword" type="password" required />
+                </label>
+                <label class="field">
+                  <span>Email</span>
+                  <input id="newAdminEmail" type="email" />
+                </label>
+                <label class="field">
+                  <span>Role</span>
+                  <select id="newAdminRole">
+                    <option value="manager">Manager</option>
+                    <option value="super-admin">Super Admin</option>
+                  </select>
+                </label>
+                <button class="btn btn-primary" type="submit">Add Admin</button>
+              </form>
+              <div id="adminAccountList" class="notice-list"></div>
+            </section>
+          </section>
         </div>
-      </section>
+      </div>
     </main>
 
     <script src="admin-list.js"></script>

@@ -1,6 +1,7 @@
 const API_BASE = '/api';
 
 let members = [];
+let adminRole = 'manager';
 const tableBody = document.getElementById('memberTableBody');
 const filterSearch = document.getElementById('filterSearch');
 const filterType = document.getElementById('filterType');
@@ -13,6 +14,14 @@ const eventDateInput = document.getElementById('eventDate');
 const eventDescriptionInput = document.getElementById('eventDescription');
 const eventImageInput = document.getElementById('eventImage');
 const eventList = document.getElementById('eventList');
+const bookingList = document.getElementById('bookingList');
+const adminUsersNavItem = document.getElementById('adminUsersNavItem');
+const adminAccountForm = document.getElementById('admin-account-form');
+const adminAccountList = document.getElementById('adminAccountList');
+const statMembers = document.getElementById('statMembers');
+const statNotices = document.getElementById('statNotices');
+const statEvents = document.getElementById('statEvents');
+const statBookings = document.getElementById('statBookings');
 
 const readFileDataUrl = (file) => new Promise((resolve) => {
   if (!file) {
@@ -45,6 +54,18 @@ const api = async (path, options = {}) => {
   return data;
 };
 
+// --- Sidebar navigation ---
+document.querySelectorAll('.dashboard-nav-item').forEach((button) => {
+  button.addEventListener('click', () => {
+    const target = button.getAttribute('data-section');
+    document.querySelectorAll('.dashboard-nav-item').forEach((item) => item.classList.remove('active'));
+    document.querySelectorAll('.dashboard-section').forEach((section) => section.classList.remove('active'));
+    button.classList.add('active');
+    document.querySelector(`[data-section-panel="${target}"]`)?.classList.add('active');
+  });
+});
+
+// --- Members ---
 const getFilteredMembers = () => {
   const searchValue = (filterSearch?.value || '').toLowerCase().trim();
   const typeValue = (filterType?.value || '').toLowerCase();
@@ -96,12 +117,14 @@ tableBody?.addEventListener('click', async (event) => {
       await api(`/members/${id}`, { method: 'DELETE' });
       members = members.filter((entry) => entry.id !== id);
       renderMembers();
+      updateStats();
     } catch (error) {
       alert(error.message || 'Failed to delete member');
     }
   }
 });
 
+// --- Notices ---
 const renderNotices = (notices) => {
   if (!noticeList) return;
   if (!notices.length) {
@@ -120,9 +143,12 @@ const renderNotices = (notices) => {
   `).join('');
 };
 
+let notices = [];
+
 const fetchNotices = async () => {
   const data = await api('/notices');
-  renderNotices(data.notices);
+  notices = data.notices;
+  renderNotices(notices);
 };
 
 noticeForm?.addEventListener('submit', async (event) => {
@@ -133,6 +159,7 @@ noticeForm?.addEventListener('submit', async (event) => {
     await api('/notices', { method: 'POST', body: JSON.stringify({ message }) });
     noticeMessageInput.value = '';
     await fetchNotices();
+    updateStats();
   } catch (error) {
     alert(error.message || 'Failed to add notice');
   }
@@ -144,6 +171,8 @@ noticeList?.addEventListener('change', async (event) => {
   const id = Number(checkbox.getAttribute('data-id'));
   try {
     await api(`/notices/${id}`, { method: 'PUT', body: JSON.stringify({ active: checkbox.checked }) });
+    await fetchNotices();
+    updateStats();
   } catch (error) {
     alert(error.message || 'Failed to update notice');
     checkbox.checked = !checkbox.checked;
@@ -157,18 +186,22 @@ noticeList?.addEventListener('click', async (event) => {
   try {
     await api(`/notices/${id}`, { method: 'DELETE' });
     await fetchNotices();
+    updateStats();
   } catch (error) {
     alert(error.message || 'Failed to delete notice');
   }
 });
 
-const renderEvents = (events) => {
+// --- Events ---
+let events = [];
+
+const renderEvents = (eventsList) => {
   if (!eventList) return;
-  if (!events.length) {
+  if (!eventsList.length) {
     eventList.innerHTML = '<div class="notice-item notice-empty">No events yet.</div>';
     return;
   }
-  eventList.innerHTML = events.map((event) => `
+  eventList.innerHTML = eventsList.map((event) => `
     <div class="notice-item">
       ${event.image?.dataUrl ? `<img class="event-thumb" src="${event.image.dataUrl}" alt="" />` : ''}
       <span class="notice-text">
@@ -186,7 +219,8 @@ const renderEvents = (events) => {
 
 const fetchEvents = async () => {
   const data = await api('/events');
-  renderEvents(data.events);
+  events = data.events;
+  renderEvents(events);
 };
 
 eventForm?.addEventListener('submit', async (event) => {
@@ -206,6 +240,7 @@ eventForm?.addEventListener('submit', async (event) => {
     });
     eventForm.reset();
     await fetchEvents();
+    updateStats();
   } catch (error) {
     alert(error.message || 'Failed to add event');
   }
@@ -217,6 +252,8 @@ eventList?.addEventListener('change', async (event) => {
   const id = Number(checkbox.getAttribute('data-id'));
   try {
     await api(`/events/${id}`, { method: 'PUT', body: JSON.stringify({ active: checkbox.checked }) });
+    await fetchEvents();
+    updateStats();
   } catch (error) {
     alert(error.message || 'Failed to update event');
     checkbox.checked = !checkbox.checked;
@@ -230,30 +267,154 @@ eventList?.addEventListener('click', async (event) => {
   try {
     await api(`/events/${id}`, { method: 'DELETE' });
     await fetchEvents();
+    updateStats();
   } catch (error) {
     alert(error.message || 'Failed to delete event');
   }
 });
 
+// --- Hall Bookings ---
+let bookings = [];
+
+const renderBookings = (bookingsList) => {
+  if (!bookingList) return;
+  if (!bookingsList.length) {
+    bookingList.innerHTML = '<div class="notice-item notice-empty">No bookings yet.</div>';
+    return;
+  }
+  bookingList.innerHTML = bookingsList.map((booking) => `
+    <div class="notice-item">
+      <span class="notice-text">
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong><br />
+        <span class="form-hint">Flat ${escapeHtml(booking.memberFlat)} · ${escapeHtml(booking.memberName)}${booking.purpose ? ` · ${escapeHtml(booking.purpose)}` : ''}</span>
+      </span>
+      <button class="action-btn" data-action="delete" data-id="${booking.id}">Cancel</button>
+    </div>
+  `).join('');
+};
+
+const fetchBookings = async () => {
+  const data = await api('/bookings');
+  bookings = data.bookings;
+  renderBookings(bookings);
+};
+
+bookingList?.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="delete"]');
+  if (!button) return;
+  const id = Number(button.getAttribute('data-id'));
+  if (!confirm('Cancel this hall booking?')) return;
+  try {
+    await api(`/bookings/${id}`, { method: 'DELETE' });
+    await fetchBookings();
+    updateStats();
+  } catch (error) {
+    alert(error.message || 'Failed to cancel booking');
+  }
+});
+
+// --- Admin Users (Super Admin only) ---
+const renderAdminAccounts = (admins) => {
+  if (!adminAccountList) return;
+  if (!admins.length) {
+    adminAccountList.innerHTML = '<div class="notice-item notice-empty">No admin accounts yet.</div>';
+    return;
+  }
+  adminAccountList.innerHTML = admins.map((admin) => `
+    <div class="notice-item">
+      <span class="notice-text">
+        <strong>${escapeHtml(admin.username)}</strong> — ${escapeHtml(admin.adminRole)}<br />
+        <span class="form-hint">${escapeHtml(admin.email || 'No email on file')}</span>
+      </span>
+      <button class="action-btn" data-action="delete" data-id="${admin.id}">Delete</button>
+    </div>
+  `).join('');
+};
+
+const fetchAdminAccounts = async () => {
+  const data = await api('/admins');
+  renderAdminAccounts(data.admins);
+};
+
+adminAccountForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const username = document.getElementById('newAdminUsername').value.trim();
+  const password = document.getElementById('newAdminPassword').value;
+  const email = document.getElementById('newAdminEmail').value.trim();
+  const roleValue = document.getElementById('newAdminRole').value;
+  if (!username || !password) return;
+  try {
+    await api('/admins', { method: 'POST', body: JSON.stringify({ username, password, email, adminRole: roleValue }) });
+    adminAccountForm.reset();
+    await fetchAdminAccounts();
+  } catch (error) {
+    alert(error.message || 'Failed to add admin account');
+  }
+});
+
+adminAccountList?.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="delete"]');
+  if (!button) return;
+  const id = button.getAttribute('data-id');
+  if (!confirm('Delete this admin account?')) return;
+  try {
+    await api(`/admins?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await fetchAdminAccounts();
+  } catch (error) {
+    alert(error.message || 'Failed to delete admin account');
+  }
+});
+
+// --- Dashboard stats ---
+const updateStats = () => {
+  if (statMembers) statMembers.textContent = members.length;
+  if (statNotices) statNotices.textContent = notices.filter((n) => n.active).length;
+  if (statEvents) statEvents.textContent = events.filter((e) => e.active).length;
+  if (statBookings) statBookings.textContent = bookings.length;
+};
+
 const init = async () => {
+  try {
+    const whoami = await api('/auth/admin-whoami');
+    adminRole = whoami.adminRole;
+  } catch (error) {
+    return; // already redirected to admin.html on 401
+  }
+
+  if (adminRole === 'super-admin' && adminUsersNavItem) {
+    adminUsersNavItem.hidden = false;
+    try {
+      await fetchAdminAccounts();
+    } catch (error) {
+      // non-fatal
+    }
+  }
+
   try {
     const data = await api('/members');
     members = data.members;
     renderMembers();
   } catch (error) {
-    // already redirected to admin.html on 401
     return;
   }
+
   try {
     await fetchNotices();
   } catch (error) {
-    // non-fatal — member list already loaded
+    // non-fatal
   }
   try {
     await fetchEvents();
   } catch (error) {
-    // non-fatal — member list already loaded
+    // non-fatal
   }
+  try {
+    await fetchBookings();
+  } catch (error) {
+    // non-fatal
+  }
+
+  updateStats();
 };
 
 init();
