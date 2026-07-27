@@ -13,10 +13,6 @@ const tableBody = document.getElementById('memberTableBody');
 const formHeading = document.getElementById('formHeading');
 const newMemberBtn = document.getElementById('newMemberBtn');
 const cancelBtn = document.getElementById('cancelBtn');
-const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-const forgotPasswordForm = document.getElementById('forgot-password-form');
-const cancelForgotBtn = document.getElementById('cancelForgotBtn');
-const forgotMessage = document.getElementById('forgotMessage');
 
 const isManagementPage = /\/admin-management(?:\.html)?\/?$/.test(window.location.pathname);
 
@@ -144,36 +140,6 @@ loginForm?.addEventListener('submit', async (event) => {
   } catch (error) {
     alert('Invalid admin credentials');
   }
-});
-
-forgotPasswordLink?.addEventListener('click', () => {
-  loginForm.hidden = true;
-  forgotPasswordLink.hidden = true;
-  forgotPasswordForm.hidden = false;
-  forgotMessage.hidden = true;
-});
-
-cancelForgotBtn?.addEventListener('click', () => {
-  forgotPasswordForm.hidden = true;
-  forgotMessage.hidden = true;
-  loginForm.hidden = false;
-  forgotPasswordLink.hidden = false;
-});
-
-forgotPasswordForm?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const username = document.getElementById('forgotUsername').value.trim();
-  try {
-    await fetch(`${API_BASE}/auth/admin-forgot-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username })
-    });
-  } catch (error) {
-    // fall through to the generic message below regardless of network errors
-  }
-  forgotMessage.hidden = false;
-  forgotMessage.textContent = 'If that account exists, a reset link has been emailed to its recovery address.';
 });
 
 const init = async () => {
