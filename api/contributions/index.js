@@ -160,18 +160,17 @@ module.exports = async (req, res) => {
     const now = new Date();
     let doc;
 
-    if (isMember) {
-      const member = await db.collection('members').findOne({ id: memberSession.id });
-      if (!member) {
-        sendJson(res, 404, { error: 'Member record not found' });
+    // The admin's manual-entry form always sends `name` explicitly; the
+    // member's own contribution form never does. Use that as the intent
+    // signal rather than "is this browser's member cookie present" — an
+    // admin who is also a registered member could have both session
+    // cookies at once, and cookie-presence alone would silently attribute
+    // a manual entry to the admin's own member profile instead.
+    if (body.name !== undefined) {
+      if (!isAdmin) {
+        sendJson(res, 403, { error: 'Only an admin can log a manual contribution' });
         return;
       }
-      doc = {
-        id, occasionId, occasionName: occasion.name,
-        memberId: member.id, name: member.name, flat: member.flat, wing: member.wing,
-        amount, note, createdBy: 'member', createdAt: now
-      };
-    } else {
       const name = (body.name || '').trim();
       const flat = (body.flat || '').trim();
       const wing = (body.wing || '').trim();
@@ -184,10 +183,82 @@ module.exports = async (req, res) => {
         memberId: null, name, flat, wing,
         amount, note, createdBy: 'admin', createdAt: now
       };
+    } else {
+      if (!isMember) {
+        sendJson(res, 401, { error: 'Not authenticated as a member' });
+        return;
+      }
+      const member = await db.collection('members').findOne({ id: memberSession.id });
+      if (!member) {
+        sendJson(res, 404, { error: 'Member record not found' });
+        return;
+      }
+      doc = {
+        id, occasionId, occasionName: occasion.name,
+        memberId: member.id, name: member.name, flat: member.flat, wing: member.wing,
+        amount, note, createdBy: 'member', createdAt: now
+      };
     }
 
     await contributions.insertOne(doc);
     sendJson(res, 201, { contribution: toContribution(doc) });
+    return;
+  }
+
+  if (req.method === 'PUT') {
+    const session = requireAdminSession(req, res);
+    if (!session) return;
+    const id = Number(req.query && req.query.id);
+    if (!id) {
+      sendJson(res, 400, { error: 'A valid contribution id is required' });
+      return;
+    }
+
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch (error) {
+      sendJson(res, 400, { error: 'Invalid request body' });
+      return;
+    }
+
+    const existing = await contributions.findOne({ id });
+    if (!existing) {
+      sendJson(res, 404, { error: 'Contribution not found' });
+      return;
+    }
+
+    let occasionName = existing.occasionName;
+    let occasionId = existing.occasionId;
+    if (body.occasionId !== undefined) {
+      const newOccasionId = Number(body.occasionId);
+      const occasion = await db.collection('occasions').findOne({ id: newOccasionId });
+      if (!occasion) {
+        sendJson(res, 404, { error: 'Occasion not found' });
+        return;
+      }
+      occasionId = newOccasionId;
+      occasionName = occasion.name;
+    }
+
+    const amount = body.amount !== undefined ? Number(body.amount) : existing.amount;
+    if (!Number.isFinite(amount) || amount <= 0) {
+      sendJson(res, 400, { error: 'A valid contribution amount is required' });
+      return;
+    }
+
+    const update = {
+      occasionId,
+      occasionName,
+      name: body.name !== undefined ? String(body.name).trim() : existing.name,
+      flat: body.flat !== undefined ? String(body.flat).trim() : existing.flat,
+      wing: body.wing !== undefined ? String(body.wing).trim() : existing.wing,
+      amount,
+      note: body.note !== undefined ? String(body.note).trim() : existing.note
+    };
+
+    await contributions.updateOne({ id }, { $set: update });
+    sendJson(res, 200, { contribution: toContribution({ ...existing, ...update }) });
     return;
   }
 

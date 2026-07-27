@@ -121,16 +121,30 @@ module.exports = async (req, res) => {
       return;
     }
 
+    // The admin "book for a member" form always sends `memberId` explicitly;
+    // the member's own booking form never does. Use that as the intent
+    // signal rather than "is a member cookie present" — an admin who is
+    // also a registered member could have both session cookies at once,
+    // and cookie-presence alone would silently book under the admin's own
+    // member profile instead of the one they picked.
     let member;
-    if (isMember) {
-      member = await db.collection('members').findOne({ id: memberSession.id });
-    } else {
+    if (body.memberId !== undefined) {
+      if (!isAdmin) {
+        sendJson(res, 403, { error: 'Only an admin can book on behalf of another member' });
+        return;
+      }
       const targetMemberId = Number(body.memberId);
       if (!targetMemberId) {
         sendJson(res, 400, { error: 'A member must be selected for this booking' });
         return;
       }
       member = await db.collection('members').findOne({ id: targetMemberId });
+    } else {
+      if (!isMember) {
+        sendJson(res, 401, { error: 'Not authenticated as a member' });
+        return;
+      }
+      member = await db.collection('members').findOne({ id: memberSession.id });
     }
     if (!member) {
       sendJson(res, 404, { error: 'Member record not found' });

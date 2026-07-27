@@ -310,6 +310,7 @@
               </div>
               <p class="form-hint">For residents who aren't registered as members yet — enter their details directly. Registered members can also log their own from their dashboard.</p>
               <form id="contribution-form" class="notice-form">
+                <input id="contribEditId" type="hidden" />
                 <label class="field">
                   <span>Occasion</span>
                   <select id="contribOccasion" required></select>
@@ -338,7 +339,8 @@
                   <span>Note (optional)</span>
                   <input id="contribNote" type="text" />
                 </label>
-                <button class="btn btn-primary" type="submit">Log Contribution</button>
+                <button class="btn btn-primary" type="submit" id="contribSubmitBtn">Log Contribution</button>
+                <button class="btn btn-secondary" type="button" id="contribCancelEditBtn" hidden>Cancel Edit</button>
               </form>
             </section>
 
@@ -347,6 +349,9 @@
                 <div>
                   <p class="eyebrow">Admin Access</p>
                   <h1>Collection Report</h1>
+                </div>
+                <div class="panel-actions">
+                  <button class="btn btn-secondary" type="button" id="exportContributionsBtn">Export to Excel</button>
                 </div>
               </div>
               <div class="stat-grid">

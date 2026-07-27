@@ -549,6 +549,7 @@ const renderContributionReport = () => {
       <td>${c.createdBy === 'member' ? 'Member' : 'Manual'}</td>
       <td>
         <a class="action-btn" href="receipt.html?id=${c.id}" target="_blank" rel="noopener">Receipt</a>
+        <button class="action-btn" data-action="edit-contribution" data-id="${c.id}">Edit</button>
         <button class="action-btn" data-action="delete-contribution" data-id="${c.id}">Delete</button>
       </td>
     </tr>
@@ -563,8 +564,20 @@ const fetchContributions = async () => {
 
 reportOccasionFilter?.addEventListener('change', renderContributionReport);
 
+const contribEditIdInput = document.getElementById('contribEditId');
+const contribSubmitBtn = document.getElementById('contribSubmitBtn');
+const contribCancelEditBtn = document.getElementById('contribCancelEditBtn');
+
+const exitContributionEditMode = () => {
+  contribEditIdInput.value = '';
+  contributionForm.reset();
+  contribSubmitBtn.textContent = 'Log Contribution';
+  contribCancelEditBtn.hidden = true;
+};
+
 contributionForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
+  const editId = contribEditIdInput.value;
   const occasionId = Number(contribOccasionSelect.value);
   const name = document.getElementById('contribName').value.trim();
   const flat = document.getElementById('contribFlat').value.trim();
@@ -576,25 +589,83 @@ contributionForm?.addEventListener('submit', async (event) => {
     return;
   }
   try {
-    await api('/contributions', { method: 'POST', body: JSON.stringify({ occasionId, name, flat, wing, amount, note }) });
-    contributionForm.reset();
+    if (editId) {
+      await api(`/contributions?id=${editId}`, { method: 'PUT', body: JSON.stringify({ occasionId, name, flat, wing, amount, note }) });
+    } else {
+      await api('/contributions', { method: 'POST', body: JSON.stringify({ occasionId, name, flat, wing, amount, note }) });
+    }
+    exitContributionEditMode();
     await fetchContributions();
   } catch (error) {
-    alert(error.message || 'Failed to log contribution');
+    alert(error.message || 'Failed to save contribution');
   }
 });
 
+contribCancelEditBtn?.addEventListener('click', exitContributionEditMode);
+
 contributionTableBody?.addEventListener('click', async (event) => {
-  const button = event.target.closest('button[data-action="delete-contribution"]');
-  if (!button) return;
-  const id = button.getAttribute('data-id');
-  if (!confirm('Delete this contribution record?')) return;
-  try {
-    await api(`/contributions?id=${id}`, { method: 'DELETE' });
-    await fetchContributions();
-  } catch (error) {
-    alert(error.message || 'Failed to delete contribution');
+  const deleteButton = event.target.closest('button[data-action="delete-contribution"]');
+  if (deleteButton) {
+    const id = deleteButton.getAttribute('data-id');
+    if (!confirm('Delete this contribution record?')) return;
+    try {
+      await api(`/contributions?id=${id}`, { method: 'DELETE' });
+      await fetchContributions();
+    } catch (error) {
+      alert(error.message || 'Failed to delete contribution');
+    }
+    return;
   }
+
+  const editButton = event.target.closest('button[data-action="edit-contribution"]');
+  if (editButton) {
+    const id = Number(editButton.getAttribute('data-id'));
+    const contribution = contributions.find((c) => c.id === id);
+    if (!contribution) return;
+    contribEditIdInput.value = String(contribution.id);
+    contribOccasionSelect.value = String(contribution.occasionId);
+    document.getElementById('contribName').value = contribution.name || '';
+    document.getElementById('contribFlat').value = contribution.flat || '';
+    document.getElementById('contribWing').value = contribution.wing || '';
+    document.getElementById('contribAmount').value = contribution.amount || '';
+    document.getElementById('contribNote').value = contribution.note || '';
+    contribSubmitBtn.textContent = 'Update Contribution';
+    contribCancelEditBtn.hidden = false;
+    contributionForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+// --- Export to Excel (CSV) ---
+const csvEscape = (value) => {
+  const str = String(value ?? '');
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+document.getElementById('exportContributionsBtn')?.addEventListener('click', () => {
+  const filterId = reportOccasionFilter?.value || '';
+  const visible = filterId ? contributions.filter((c) => String(c.occasionId) === filterId) : contributions;
+  if (!visible.length) {
+    alert('No contributions to export.');
+    return;
+  }
+  const header = ['Flat', 'Wing', 'Name', 'Occasion', 'Amount', 'Source', 'Note', 'Date'];
+  const rows = visible.map((c) => [
+    c.flat, c.wing, c.name, c.occasionName, c.amount,
+    c.createdBy === 'member' ? 'Member' : 'Manual',
+    c.note || '',
+    c.createdAt ? new Date(c.createdAt).toISOString().slice(0, 10) : ''
+  ]);
+  const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const occasionLabel = filterId ? occasions.find((o) => String(o.id) === filterId)?.name || 'occasion' : 'all-occasions';
+  link.download = `contributions-${occasionLabel.replace(/\s+/g, '-').toLowerCase()}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 });
 
 // --- Dashboard stats ---
