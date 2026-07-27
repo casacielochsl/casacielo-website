@@ -1,4 +1,25 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
+
+const ASSET_DIR = path.join(__dirname, '..', '..', 'assets');
+
+const readAsset = (filename) => {
+  try {
+    return fs.readFileSync(path.join(ASSET_DIR, filename));
+  } catch (error) {
+    return null;
+  }
+};
+
+const letterheadAttachments = () => {
+  const attachments = [];
+  const header = readAsset('letterhead-header.jpg');
+  const footer = readAsset('letterhead-footer.jpg');
+  if (header) attachments.push({ filename: 'letterhead-header.jpg', content: header, cid: 'letterhead-header' });
+  if (footer) attachments.push({ filename: 'letterhead-footer.jpg', content: footer, cid: 'letterhead-footer' });
+  return attachments;
+};
 
 let transporter;
 
@@ -21,40 +42,15 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
 
-const LETTERHEAD_BG = '#3d5a73';
-
-const letterheadHeader = () => `
-  <div style="background-color:${LETTERHEAD_BG}; padding:20px 24px;">
-    <table role="presentation" width="100%" style="border-collapse:collapse;">
-      <tr>
-        <td style="vertical-align:middle;">
-          <div style="font-family: Georgia, 'Times New Roman', serif; font-size:24px; font-weight:800; letter-spacing:0.02em; color:#ffffff;">CASA CIELO</div>
-          <div style="font-family: Georgia, 'Times New Roman', serif; font-size:13px; font-weight:700; color:#ffffff; margin-top:4px;">CO-OPERATIVE HOUSING SOCIETY LIMITED</div>
-          <div style="font-size:11px; color:#dbe6ee; margin-top:6px;">Regd. No.: TNA/KLN/HSG/(TC)33283/2021-22/2021 dated 14 MAY 2021</div>
-        </td>
-        <td style="width:60px; vertical-align:middle; text-align:right;">
-          <div style="width:52px; height:52px; border-radius:50%; border:2px solid #ffffff; text-align:center; line-height:48px; font-family: Georgia, serif; font-size:22px; font-weight:800; color:#ffffff;">C</div>
-        </td>
-      </tr>
-    </table>
-  </div>
-`;
-
-const letterheadFooter = () => `
-  <div style="background-color:${LETTERHEAD_BG}; padding:12px 24px; text-align:center;">
-    <span style="color:#ffffff; font-size:11px; font-weight:700;">Address: Casa Cielo Survey No. 149/1 and 150/10, F-Wing-003, Palava Phase-2, Lakeshore Green, Khoni, Dombivali (East) - 421204</span>
-  </div>
-`;
-
 const emailShell = (title, bodyHtml) => `
   <div style="font-family: Arial, sans-serif; background:#e8edf0; padding:32px 16px;">
     <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:10px; overflow:hidden; border:1px solid #d7dee3;">
-      ${letterheadHeader()}
+      <img src="cid:letterhead-header" alt="Casa Cielo Co-operative Housing Society Limited" style="display:block; width:100%; height:auto;" />
       <div style="padding:24px; color:#1a1a1a; line-height:1.6;">
         <h2 style="margin:0 0 12px; color:#1a1a1a;">${escapeHtml(title)}</h2>
         ${bodyHtml}
       </div>
-      ${letterheadFooter()}
+      <img src="cid:letterhead-footer" alt="Casa Cielo Survey No. 149/1 and 150/10, F-Wing-003, Palava Phase-2, Lakeshore Green" style="display:block; width:100%; height:auto;" />
     </div>
   </div>
 `;
@@ -102,6 +98,7 @@ const invoiceTable = ({ date, slot, timeRange, amount, currency }) => {
 };
 
 const sendResetEmail = ({ to, resetUrl }) => getTransporter().sendMail({
+  attachments: letterheadAttachments(),
   from: process.env.SMTP_FROM || process.env.SMTP_USER,
   to,
   subject: 'Casa Cielo admin password reset',
@@ -114,6 +111,7 @@ const sendResetEmail = ({ to, resetUrl }) => getTransporter().sendMail({
 });
 
 const sendBookingConfirmationEmail = ({ to, memberName, flat, wing, date, slot, purpose, timeRange, amount, currency, invoiceNo }) => getTransporter().sendMail({
+  attachments: letterheadAttachments(),
   from: process.env.SMTP_FROM || process.env.SMTP_USER,
   to,
   subject: `Hall Booking Invoice #INV-${String(invoiceNo).padStart(4, '0')} — ${date} (${slot})`,
@@ -135,6 +133,7 @@ const sendBookingConfirmationEmail = ({ to, memberName, flat, wing, date, slot, 
 });
 
 const sendBookingManagerNotificationEmail = ({ to, memberName, flat, wing, date, slot, purpose, timeRange, contact, email, amount, currency, invoiceNo }) => getTransporter().sendMail({
+  attachments: letterheadAttachments(),
   from: process.env.SMTP_FROM || process.env.SMTP_USER,
   to,
   subject: `New hall booking — ${date} (${slot}) — Flat ${flat}`,

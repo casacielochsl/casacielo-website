@@ -3,3 +3,7 @@ node_modules
 .env
 .env.local
 .env*.local
+
+# Original high-res source images (2MB+ each, CMYK) — optimized web/email
+# versions actually used by the site live in assets/ instead.
+/Images
