@@ -449,16 +449,20 @@ const renderTicketList = (containerId, ticketList, emptyText) => {
   `).join('');
 };
 
+const isOpenTicket = (t) => t.status === 'Open' || t.status === 'In Progress';
+
 const fetchMyComplaints = async () => {
   const data = await api('/tickets?kind=complaint');
   myComplaints = data.tickets;
   renderTicketList('myComplaintList', myComplaints, 'No complaints raised yet.');
+  setText('statMyComplaints', myComplaints.filter(isOpenTicket).length);
 };
 
 const fetchMyRequests = async () => {
   const data = await api('/tickets?kind=request');
   myRequests = data.tickets;
   renderTicketList('myRequestList', myRequests, 'No requests raised yet.');
+  setText('statMyRequests', myRequests.filter(isOpenTicket).length);
 };
 
 document.getElementById('complaint-form')?.addEventListener('submit', async (event) => {

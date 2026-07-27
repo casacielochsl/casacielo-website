@@ -24,6 +24,8 @@ const statMembers = document.getElementById('statMembers');
 const statNotices = document.getElementById('statNotices');
 const statEvents = document.getElementById('statEvents');
 const statBookings = document.getElementById('statBookings');
+const statComplaints = document.getElementById('statComplaints');
+const statRequests = document.getElementById('statRequests');
 const occasionForm = document.getElementById('occasion-form');
 const occasionList = document.getElementById('occasionList');
 const contributionForm = document.getElementById('contribution-form');
@@ -714,6 +716,9 @@ const updateStats = () => {
   if (statNotices) statNotices.textContent = notices.filter((n) => n.active).length;
   if (statEvents) statEvents.textContent = events.filter((e) => e.active).length;
   if (statBookings) statBookings.textContent = bookings.length;
+  const isOpenTicket = (t) => t.status === 'Open' || t.status === 'In Progress';
+  if (statComplaints) statComplaints.textContent = complaints.filter(isOpenTicket).length;
+  if (statRequests) statRequests.textContent = requests.filter(isOpenTicket).length;
 };
 
 // --- Complaints & Requests (shared "tickets" endpoint, split by kind) ---
