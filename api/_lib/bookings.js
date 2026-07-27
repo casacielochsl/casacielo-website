@@ -14,6 +14,8 @@ const toBooking = (doc, viewerRole) => {
     currency: doc.currency || 'INR',
     timeRange: doc.timeRange || '',
     bookedBy: doc.bookedBy || 'member',
+    status: doc.status || 'confirmed',
+    cancelledBy: doc.cancelledBy || '',
     createdAt: doc.createdAt
   };
   if (viewerRole === 'admin') {

@@ -197,7 +197,7 @@ const formatDate = (y, m, d) => `${y}-${pad2(m + 1)}-${pad2(d)}`;
 const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
 
 const getAvailableSlots = (dateStr) => {
-  const bookingsForDay = allBookings.filter((booking) => booking.date === dateStr);
+  const bookingsForDay = allBookings.filter((booking) => booking.date === dateStr && booking.status !== 'cancelled');
   if (bookingsForDay.some((booking) => booking.slot === 'Full Day')) return [];
   const taken = new Set(bookingsForDay.map((booking) => booking.slot));
   return SLOTS.filter((slot) => (slot === 'Full Day' ? bookingsForDay.length === 0 : !taken.has(slot)));
@@ -320,16 +320,19 @@ const renderMyBookings = () => {
     container.innerHTML = '<div class="booking-item notice-empty">No bookings yet.</div>';
     return;
   }
-  container.innerHTML = mine.map((booking) => `
-    <div class="booking-item">
+  container.innerHTML = mine.map((booking) => {
+    const isCancelled = booking.status === 'cancelled';
+    return `
+    <div class="booking-item${isCancelled ? ' is-cancelled' : ''}">
       <span class="notice-text">
-        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong> · ₹${escapeHtml(booking.amount || 0)}
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}</strong> · ₹${escapeHtml(booking.amount || 0)}${isCancelled ? ' · <span class="cancelled-tag">Cancelled</span>' : ''}
         ${booking.purpose ? `<br /><span class="form-hint">${escapeHtml(booking.purpose)}</span>` : ''}
       </span>
       <a class="action-btn" href="invoice.html?id=${booking.id}" target="_blank" rel="noopener">Invoice</a>
-      <button class="action-btn" data-action="cancel" data-id="${booking.id}">Cancel</button>
+      ${isCancelled ? '' : `<button class="action-btn" data-action="cancel" data-id="${booking.id}">Cancel</button>`}
     </div>
-  `).join('');
+  `;
+  }).join('');
 };
 
 document.getElementById('myBookingList')?.addEventListener('click', async (event) => {
@@ -356,6 +359,70 @@ const fetchRates = async () => {
   const data = await api('/bookings?resource=rates');
   hallRates = data.rates;
 };
+
+// --- Contributions ---
+let myContributions = [];
+
+const fetchOccasionsForContribution = async () => {
+  const data = await api('/contributions?resource=occasions');
+  const select = document.getElementById('memberContribOccasion');
+  const hint = document.getElementById('contributionFormHint');
+  const form = document.getElementById('member-contribution-form');
+  if (!data.occasions.length) {
+    if (hint) hint.textContent = 'No occasions are open for contribution right now.';
+    if (form) form.hidden = true;
+    return;
+  }
+  if (select) select.innerHTML = data.occasions.map((occasion) => `<option value="${occasion.id}">${escapeHtml(occasion.name)}</option>`).join('');
+  if (hint) hint.textContent = '';
+  if (form) form.hidden = false;
+};
+
+const renderMyContributions = () => {
+  const container = document.getElementById('myContributionList');
+  if (!container) return;
+  if (!myContributions.length) {
+    container.innerHTML = '<div class="booking-item notice-empty">No contributions yet.</div>';
+    return;
+  }
+  container.innerHTML = myContributions.map((c) => `
+    <div class="booking-item">
+      <span class="notice-text">
+        <strong>${escapeHtml(c.occasionName)}</strong> · ₹${escapeHtml(c.amount)}
+        ${c.note ? `<br /><span class="form-hint">${escapeHtml(c.note)}</span>` : ''}
+      </span>
+      <a class="action-btn" href="receipt.html?id=${c.id}" target="_blank" rel="noopener">Receipt</a>
+    </div>
+  `).join('');
+};
+
+const fetchMyContributions = async () => {
+  const data = await api('/contributions');
+  myContributions = data.contributions;
+  renderMyContributions();
+};
+
+document.getElementById('member-contribution-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const occasionId = Number(document.getElementById('memberContribOccasion').value);
+  const amount = document.getElementById('memberContribAmount').value;
+  const note = document.getElementById('memberContribNote').value.trim();
+  const message = document.getElementById('contributionMessage');
+  try {
+    await api('/contributions', { method: 'POST', body: JSON.stringify({ occasionId, amount, note }) });
+    if (message) {
+      message.textContent = 'Thank you! Your contribution has been recorded.';
+      message.style.color = '#8dffb0';
+    }
+    document.getElementById('member-contribution-form').reset();
+    await fetchMyContributions();
+  } catch (error) {
+    if (message) {
+      message.textContent = error.message || 'Failed to record contribution.';
+      message.style.color = '#ff8d8d';
+    }
+  }
+});
 
 const init = async () => {
   let member;
@@ -385,6 +452,13 @@ const init = async () => {
     await fetchBookings();
     renderCalendar();
     renderMyBookings();
+  } catch (error) {
+    // non-fatal
+  }
+
+  try {
+    await fetchOccasionsForContribution();
+    await fetchMyContributions();
   } catch (error) {
     // non-fatal
   }

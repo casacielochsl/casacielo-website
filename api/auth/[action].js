@@ -127,7 +127,7 @@ const adminResetPassword = async (req, res) => {
     return;
   }
 
-  const payload = verifyResetToken(token);
+  const payload = verifyResetToken(token, 'admin-reset');
   if (!payload) {
     sendJson(res, 401, { error: 'This reset link is invalid or has expired' });
     return;
@@ -148,6 +148,69 @@ const adminResetPassword = async (req, res) => {
   sendJson(res, 200, { ok: true });
 };
 
+const memberForgotPassword = async (req, res) => {
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    sendJson(res, 400, { error: 'Invalid request body' });
+    return;
+  }
+
+  const flat = (body.flat || '').trim();
+  const wing = (body.wing || '').trim();
+  const genericResponse = { ok: true, message: 'If that flat/wing exists, a reset link has been emailed to the recovery address on file.' };
+
+  if (!flat || !wing) {
+    sendJson(res, 200, genericResponse);
+    return;
+  }
+
+  const db = await getDb();
+  const member = await db.collection('members').findOne({ flatKey: normalizeFlatKey(flat), wing });
+
+  if (member && member.email) {
+    const token = signResetToken(member.id, 'member-reset');
+    const resetUrl = `${buildOrigin(req)}/reset-password.html?token=${token}&role=member`;
+    try {
+      await sendResetEmail({ to: member.email, resetUrl });
+    } catch (error) {
+      console.error('Failed to send member reset email:', error);
+    }
+  }
+
+  sendJson(res, 200, genericResponse);
+};
+
+const memberResetPassword = async (req, res) => {
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    sendJson(res, 400, { error: 'Invalid request body' });
+    return;
+  }
+
+  const { token, password } = body;
+
+  if (!token || !password || password.length < 6) {
+    sendJson(res, 400, { error: 'A valid token and a password of at least 6 characters are required' });
+    return;
+  }
+
+  const payload = verifyResetToken(token, 'member-reset');
+  if (!payload) {
+    sendJson(res, 401, { error: 'This reset link is invalid or has expired' });
+    return;
+  }
+
+  const passwordHash = await hashPassword(password);
+  const db = await getDb();
+  await db.collection('members').updateOne({ id: payload.id }, { $set: { passwordHash } });
+
+  sendJson(res, 200, { ok: true });
+};
+
 const adminWhoami = async (req, res) => {
   const session = requireAdminSession(req, res);
   if (!session) return;
@@ -159,6 +222,8 @@ const ACTIONS = {
   'member-login': { method: 'POST', handler: memberLogin },
   'admin-forgot-password': { method: 'POST', handler: adminForgotPassword },
   'admin-reset-password': { method: 'POST', handler: adminResetPassword },
+  'member-forgot-password': { method: 'POST', handler: memberForgotPassword },
+  'member-reset-password': { method: 'POST', handler: memberResetPassword },
   'admin-whoami': { method: 'GET', handler: adminWhoami }
 };
 

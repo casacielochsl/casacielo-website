@@ -72,6 +72,8 @@ h1, h2, h3 { margin-top: 0; }
 }
 .btn { display: inline-block; padding: 0.9rem 1.3rem; border-radius: 999px; font-weight: 700; border: 0; cursor: pointer; }
 .btn-primary { color: white; background: linear-gradient(135deg, var(--accent), var(--accent-strong)); }
+.btn-secondary { color: white; background: rgba(255,255,255,0.08); border: 1px solid var(--border); }
+.link-btn { background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; padding: 0.4rem 0; text-decoration: underline; display: block; margin-top: 0.6rem; }
 .pill { display: inline-block; padding: 0.45rem 0.75rem; border-radius: 999px; background: rgba(90, 208, 255, 0.16); color: var(--accent); font-weight: 700; }
 .dashboard-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .details-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }

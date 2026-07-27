@@ -2,6 +2,9 @@ const API_BASE = '/api';
 
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token');
+const isMemberReset = params.get('role') === 'member';
+const resetAction = isMemberReset ? 'member-reset-password' : 'admin-reset-password';
+const redirectTarget = isMemberReset ? 'members.html' : 'admin.html';
 
 const form = document.getElementById('reset-password-form');
 const message = document.getElementById('resetMessage');
@@ -13,7 +16,7 @@ const showMessage = (text, isError) => {
 };
 
 if (!token) {
-  showMessage('This reset link is missing its token. Request a new one from the admin login page.', true);
+  showMessage('This reset link is missing its token. Request a new one from the login page.', true);
   if (form) form.hidden = true;
 }
 
@@ -28,7 +31,7 @@ form?.addEventListener('submit', async (event) => {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/auth/admin-reset-password`, {
+    const res = await fetch(`${API_BASE}/auth/${resetAction}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, password })
@@ -40,7 +43,7 @@ form?.addEventListener('submit', async (event) => {
     }
     showMessage('Password updated. Redirecting to login…', false);
     setTimeout(() => {
-      window.location.href = 'admin.html';
+      window.location.href = redirectTarget;
     }, 1500);
   } catch (error) {
     showMessage('Something went wrong. Please try again.', true);

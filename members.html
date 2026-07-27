@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="assets/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Casa Cielo | Member Portal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -48,9 +49,28 @@
           </label>
 
           <button class="btn btn-primary" type="submit">Login</button>
+          <button id="forgotPasswordLink" class="link-btn" type="button">Forgot password?</button>
+        </form>
+
+        <form id="forgot-password-form" hidden>
+          <label class="field">
+            <span>Flat Number</span>
+            <input id="forgotFlat" type="text" placeholder="e.g. 701" required />
+          </label>
+          <label class="field">
+            <span>Wing</span>
+            <select id="forgotWing" required>
+              <option value="">Select wing</option>
+              <option value="A-Wing">A-Wing</option>
+              <option value="F-Wing">F-Wing</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" type="submit">Send reset link</button>
+          <button id="cancelForgotBtn" class="btn btn-secondary" type="button">Cancel</button>
         </form>
 
         <p class="hint" id="loginMessage"></p>
+        <p class="hint" id="forgotMessage" hidden></p>
       </section>
 
       <section id="dashboard" class="dashboard-card" hidden>

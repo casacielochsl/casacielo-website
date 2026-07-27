@@ -38,6 +38,18 @@ module.exports = async (req, res) => {
     return;
   }
 
-  await bookings.deleteOne({ id });
+  if (existing.status === 'cancelled') {
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  // Soft-cancel rather than delete: frees the slot back up (excluded from
+  // conflict checks) while keeping the record + invoice visible in both
+  // the admin and member dashboards.
+  await bookings.updateOne({ id }, { $set: {
+    status: 'cancelled',
+    cancelledAt: new Date(),
+    cancelledBy: isAdmin ? 'admin' : 'member'
+  } });
   sendJson(res, 200, { ok: true });
 };

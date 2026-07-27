@@ -31,6 +31,8 @@ const showError = () => {
 
 const render = (booking) => {
   const invoiceNo = `INV-${String(booking.id).padStart(4, '0')}`;
+  const cancelledBanner = document.getElementById('invCancelledBanner');
+  if (cancelledBanner) cancelledBanner.hidden = booking.status !== 'cancelled';
   setText('invInvoiceNo', invoiceNo);
   setText('invDate', booking.date);
   setText('invMember', booking.memberName || '-');

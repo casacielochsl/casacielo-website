@@ -24,6 +24,15 @@ const statMembers = document.getElementById('statMembers');
 const statNotices = document.getElementById('statNotices');
 const statEvents = document.getElementById('statEvents');
 const statBookings = document.getElementById('statBookings');
+const occasionForm = document.getElementById('occasion-form');
+const occasionList = document.getElementById('occasionList');
+const contributionForm = document.getElementById('contribution-form');
+const contribOccasionSelect = document.getElementById('contribOccasion');
+const reportOccasionFilter = document.getElementById('reportOccasionFilter');
+const contributionTableBody = document.getElementById('contributionTableBody');
+const statTotalCollection = document.getElementById('statTotalCollection');
+const statAWingCollection = document.getElementById('statAWingCollection');
+const statFWingCollection = document.getElementById('statFWingCollection');
 
 const readFileDataUrl = (file) => new Promise((resolve) => {
   if (!file) {
@@ -296,16 +305,19 @@ const renderBookings = (bookingsList) => {
     bookingList.innerHTML = '<div class="notice-item notice-empty">No bookings yet.</div>';
     return;
   }
-  bookingList.innerHTML = bookingsList.map((booking) => `
-    <div class="notice-item">
+  bookingList.innerHTML = bookingsList.map((booking) => {
+    const isCancelled = booking.status === 'cancelled';
+    return `
+    <div class="notice-item${isCancelled ? ' is-cancelled' : ''}">
       <span class="notice-text">
-        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}${booking.timeRange ? ` (${escapeHtml(booking.timeRange)})` : ''}</strong> · ₹${escapeHtml(booking.amount || 0)}${booking.bookedBy === 'admin' ? ' · <span class="form-hint">booked by admin</span>' : ''}<br />
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}${booking.timeRange ? ` (${escapeHtml(booking.timeRange)})` : ''}</strong> · ₹${escapeHtml(booking.amount || 0)}${isCancelled ? ' · <span class="cancelled-tag">Cancelled</span>' : (booking.bookedBy === 'admin' ? ' · <span class="form-hint">booked by admin</span>' : '')}<br />
         <span class="form-hint">Flat ${escapeHtml(booking.memberFlat)} · ${escapeHtml(booking.memberName)}${booking.purpose ? ` · ${escapeHtml(booking.purpose)}` : ''}</span>
       </span>
       <a class="action-btn" href="invoice.html?id=${booking.id}" target="_blank" rel="noopener">Invoice</a>
-      <button class="action-btn" data-action="delete" data-id="${booking.id}">Cancel</button>
+      ${isCancelled ? '' : `<button class="action-btn" data-action="delete" data-id="${booking.id}">Cancel</button>`}
     </div>
-  `).join('');
+  `;
+  }).join('');
 };
 
 const fetchBookings = async () => {
@@ -435,6 +447,156 @@ adminAccountList?.addEventListener('click', async (event) => {
   }
 });
 
+// --- Occasions ---
+let occasions = [];
+
+const renderOccasions = () => {
+  if (!occasionList) return;
+  if (!occasions.length) {
+    occasionList.innerHTML = '<div class="notice-item notice-empty">No occasions yet.</div>';
+  } else {
+    occasionList.innerHTML = occasions.map((occasion) => `
+      <div class="notice-item">
+        <span class="notice-text">${escapeHtml(occasion.name)}</span>
+        <label class="notice-toggle">
+          <input type="checkbox" data-action="toggle-occasion" data-id="${occasion.id}" ${occasion.active ? 'checked' : ''} />
+          <span>Active</span>
+        </label>
+        <button class="action-btn" data-action="delete-occasion" data-id="${occasion.id}">Delete</button>
+      </div>
+    `).join('');
+  }
+
+  const activeOccasions = occasions.filter((occasion) => occasion.active);
+  if (contribOccasionSelect) {
+    contribOccasionSelect.innerHTML = activeOccasions.map((occasion) => `<option value="${occasion.id}">${escapeHtml(occasion.name)}</option>`).join('');
+  }
+  if (reportOccasionFilter) {
+    const previousValue = reportOccasionFilter.value;
+    reportOccasionFilter.innerHTML = '<option value="">All Occasions</option>' + occasions.map((occasion) => `<option value="${occasion.id}">${escapeHtml(occasion.name)}</option>`).join('');
+    reportOccasionFilter.value = previousValue;
+  }
+};
+
+const fetchOccasions = async () => {
+  const data = await api('/contributions?resource=occasions');
+  occasions = data.occasions;
+  renderOccasions();
+};
+
+occasionForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const nameInput = document.getElementById('occasionName');
+  const name = nameInput.value.trim();
+  if (!name) return;
+  try {
+    await api('/contributions?resource=occasions', { method: 'POST', body: JSON.stringify({ name }) });
+    nameInput.value = '';
+    await fetchOccasions();
+  } catch (error) {
+    alert(error.message || 'Failed to add occasion');
+  }
+});
+
+occasionList?.addEventListener('change', async (event) => {
+  const checkbox = event.target.closest('input[data-action="toggle-occasion"]');
+  if (!checkbox) return;
+  const id = checkbox.getAttribute('data-id');
+  try {
+    await api(`/contributions?resource=occasions&id=${id}`, { method: 'PUT', body: JSON.stringify({ active: checkbox.checked }) });
+    await fetchOccasions();
+  } catch (error) {
+    alert(error.message || 'Failed to update occasion');
+    checkbox.checked = !checkbox.checked;
+  }
+});
+
+occasionList?.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="delete-occasion"]');
+  if (!button) return;
+  const id = button.getAttribute('data-id');
+  if (!confirm('Delete this occasion? Existing contribution records for it are kept.')) return;
+  try {
+    await api(`/contributions?resource=occasions&id=${id}`, { method: 'DELETE' });
+    await fetchOccasions();
+  } catch (error) {
+    alert(error.message || 'Failed to delete occasion');
+  }
+});
+
+// --- Contributions / Collection report ---
+let contributions = [];
+
+const renderContributionReport = () => {
+  const filterId = reportOccasionFilter?.value || '';
+  const visible = filterId ? contributions.filter((c) => String(c.occasionId) === filterId) : contributions;
+
+  const total = visible.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const aWingTotal = visible.filter((c) => c.wing === 'A-Wing').reduce((sum, c) => sum + (c.amount || 0), 0);
+  const fWingTotal = visible.filter((c) => c.wing === 'F-Wing').reduce((sum, c) => sum + (c.amount || 0), 0);
+  if (statTotalCollection) statTotalCollection.textContent = `₹${total.toLocaleString('en-IN')}`;
+  if (statAWingCollection) statAWingCollection.textContent = `₹${aWingTotal.toLocaleString('en-IN')}`;
+  if (statFWingCollection) statFWingCollection.textContent = `₹${fWingTotal.toLocaleString('en-IN')}`;
+
+  if (!contributionTableBody) return;
+  contributionTableBody.innerHTML = visible.map((c) => `
+    <tr>
+      <td>${escapeHtml(c.flat)}</td>
+      <td>${escapeHtml(c.wing)}</td>
+      <td>${escapeHtml(c.name)}</td>
+      <td>${escapeHtml(c.occasionName)}</td>
+      <td>₹${escapeHtml(c.amount)}</td>
+      <td>${c.createdBy === 'member' ? 'Member' : 'Manual'}</td>
+      <td>
+        <a class="action-btn" href="receipt.html?id=${c.id}" target="_blank" rel="noopener">Receipt</a>
+        <button class="action-btn" data-action="delete-contribution" data-id="${c.id}">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+};
+
+const fetchContributions = async () => {
+  const data = await api('/contributions');
+  contributions = data.contributions;
+  renderContributionReport();
+};
+
+reportOccasionFilter?.addEventListener('change', renderContributionReport);
+
+contributionForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const occasionId = Number(contribOccasionSelect.value);
+  const name = document.getElementById('contribName').value.trim();
+  const flat = document.getElementById('contribFlat').value.trim();
+  const wing = document.getElementById('contribWing').value;
+  const amount = document.getElementById('contribAmount').value;
+  const note = document.getElementById('contribNote').value.trim();
+  if (!occasionId) {
+    alert('Add an occasion first.');
+    return;
+  }
+  try {
+    await api('/contributions', { method: 'POST', body: JSON.stringify({ occasionId, name, flat, wing, amount, note }) });
+    contributionForm.reset();
+    await fetchContributions();
+  } catch (error) {
+    alert(error.message || 'Failed to log contribution');
+  }
+});
+
+contributionTableBody?.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="delete-contribution"]');
+  if (!button) return;
+  const id = button.getAttribute('data-id');
+  if (!confirm('Delete this contribution record?')) return;
+  try {
+    await api(`/contributions?id=${id}`, { method: 'DELETE' });
+    await fetchContributions();
+  } catch (error) {
+    alert(error.message || 'Failed to delete contribution');
+  }
+});
+
 // --- Dashboard stats ---
 const updateStats = () => {
   if (statMembers) statMembers.textContent = members.length;
@@ -485,6 +647,12 @@ const init = async () => {
   }
   try {
     await fetchRates();
+  } catch (error) {
+    // non-fatal
+  }
+  try {
+    await fetchOccasions();
+    await fetchContributions();
   } catch (error) {
     // non-fatal
   }

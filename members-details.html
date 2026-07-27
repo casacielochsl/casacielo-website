@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="assets/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Casa Cielo | Member Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,6 +26,7 @@
           <button class="dashboard-nav-item" data-section="booking" type="button">Hall Booking</button>
           <button class="dashboard-nav-item" data-section="dues" type="button">Dues</button>
           <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
+          <button class="dashboard-nav-item" data-section="contribution" type="button">Contribution</button>
         </nav>
       </aside>
 
@@ -146,6 +148,36 @@
               <p class="eyebrow">Society</p>
               <h2>Notice Board</h2>
               <div id="memberNoticeList" class="notice-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="contribution">
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>Make a Contribution</h2>
+              <p class="form-hint" id="contributionFormHint"></p>
+              <form id="member-contribution-form" class="notice-form">
+                <label class="field">
+                  <span>Occasion</span>
+                  <select id="memberContribOccasion" required></select>
+                </label>
+                <label class="field">
+                  <span>Amount (₹)</span>
+                  <input id="memberContribAmount" type="number" min="1" step="1" required />
+                </label>
+                <label class="field field-full">
+                  <span>Note (optional)</span>
+                  <input id="memberContribNote" type="text" />
+                </label>
+                <button class="btn btn-primary" type="submit">Contribute</button>
+              </form>
+              <p id="contributionMessage" class="form-hint"></p>
+            </section>
+
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>My Contributions</h2>
+              <div id="myContributionList" class="booking-list"></div>
             </section>
           </section>
         </div>

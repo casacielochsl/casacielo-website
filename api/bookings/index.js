@@ -115,7 +115,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const existingForDate = await bookings.find({ date }).toArray();
+    const existingForDate = await bookings.find({ date, status: { $ne: 'cancelled' } }).toArray();
     if (hasConflict(existingForDate, slot)) {
       sendJson(res, 409, { error: 'That slot is no longer available for the selected date' });
       return;
@@ -159,6 +159,7 @@ module.exports = async (req, res) => {
       amount,
       currency: rates.currency,
       bookedBy: isAdmin ? 'admin' : 'member',
+      status: 'confirmed',
       createdAt: now,
       updatedAt: now
     };

@@ -50,12 +50,13 @@ const requireAdminSession = (req, res) => {
   return session;
 };
 
-const signResetToken = (adminId) => jwt.sign({ role: 'admin-reset', id: adminId }, AUTH_SECRET, { expiresIn: RESET_TOKEN_MAX_AGE_SECONDS });
+const signResetToken = (id, role = 'admin-reset') => jwt.sign({ role, id }, AUTH_SECRET, { expiresIn: RESET_TOKEN_MAX_AGE_SECONDS });
 
-const verifyResetToken = (token) => {
+const verifyResetToken = (token, expectedRole) => {
   try {
     const payload = jwt.verify(token, AUTH_SECRET);
-    return payload.role === 'admin-reset' ? payload : null;
+    if (expectedRole) return payload.role === expectedRole ? payload : null;
+    return (payload.role === 'admin-reset' || payload.role === 'member-reset') ? payload : null;
   } catch (error) {
     return null;
   }

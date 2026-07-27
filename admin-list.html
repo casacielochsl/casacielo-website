@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="assets/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Casa Cielo | Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,6 +28,7 @@
           <button class="dashboard-nav-item" data-section="events" type="button">Upcoming Events</button>
           <button class="dashboard-nav-item" data-section="bookings" type="button">Hall Bookings</button>
           <button class="dashboard-nav-item" data-section="rates" type="button">Rate Card</button>
+          <button class="dashboard-nav-item" data-section="contributions" type="button">Contributions</button>
           <button class="dashboard-nav-item" data-section="admins" id="adminUsersNavItem" type="button" hidden>Admin Users</button>
         </nav>
       </aside>
@@ -277,6 +279,105 @@
                   <button class="btn btn-primary" type="submit">Save Rates</button>
                 </div>
               </form>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="contributions">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Occasions</h1>
+                </div>
+              </div>
+              <p class="form-hint">Create an occasion (e.g. "Ganpati 2026") to collect contributions against. Deactivate one once collection is closed.</p>
+              <form id="occasion-form" class="notice-form">
+                <label class="field field-full">
+                  <span>New Occasion</span>
+                  <input id="occasionName" type="text" placeholder="e.g. Ganpati 2026" required />
+                </label>
+                <button class="btn btn-primary" type="submit">Add Occasion</button>
+              </form>
+              <div id="occasionList" class="notice-list"></div>
+            </section>
+
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Log a Contribution</h1>
+                </div>
+              </div>
+              <p class="form-hint">For residents who aren't registered as members yet — enter their details directly. Registered members can also log their own from their dashboard.</p>
+              <form id="contribution-form" class="notice-form">
+                <label class="field">
+                  <span>Occasion</span>
+                  <select id="contribOccasion" required></select>
+                </label>
+                <label class="field">
+                  <span>Name</span>
+                  <input id="contribName" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Flat</span>
+                  <input id="contribFlat" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Wing</span>
+                  <select id="contribWing" required>
+                    <option value="">Select wing</option>
+                    <option value="A-Wing">A-Wing</option>
+                    <option value="F-Wing">F-Wing</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Amount (₹)</span>
+                  <input id="contribAmount" type="number" min="1" step="1" required />
+                </label>
+                <label class="field field-full">
+                  <span>Note (optional)</span>
+                  <input id="contribNote" type="text" />
+                </label>
+                <button class="btn btn-primary" type="submit">Log Contribution</button>
+              </form>
+            </section>
+
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Collection Report</h1>
+                </div>
+              </div>
+              <div class="stat-grid">
+                <div class="stat-tile"><strong id="statTotalCollection">-</strong><span>Total Collection</span></div>
+                <div class="stat-tile"><strong id="statAWingCollection">-</strong><span>A-Wing</span></div>
+                <div class="stat-tile"><strong id="statFWingCollection">-</strong><span>F-Wing</span></div>
+              </div>
+              <div class="filter-bar">
+                <label class="field field-inline">
+                  <span>Occasion</span>
+                  <select id="reportOccasionFilter">
+                    <option value="">All Occasions</option>
+                  </select>
+                </label>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Flat</th>
+                      <th>Wing</th>
+                      <th>Name</th>
+                      <th>Occasion</th>
+                      <th>Amount</th>
+                      <th>Source</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="contributionTableBody"></tbody>
+                </table>
+              </div>
             </section>
           </section>
 

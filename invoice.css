@@ -72,7 +72,20 @@ body {
   z-index: 0;
 }
 
-.invoice-meta, .invoice-table, .invoice-purpose, h3 { position: relative; z-index: 1; }
+.invoice-meta, .invoice-table, .invoice-purpose, .invoice-cancelled-banner, h3 { position: relative; z-index: 1; }
+
+.invoice-cancelled-banner {
+  font-family: Arial, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b3261e;
+  background: rgba(179, 38, 30, 0.1);
+  border: 1px solid rgba(179, 38, 30, 0.35);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin: 0 0 1.2rem;
+}
 
 .invoice-meta { display: flex; gap: 2rem; margin-bottom: 1.5rem; font-family: Arial, sans-serif; }
 .invoice-meta span { display: block; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
