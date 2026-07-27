@@ -21,6 +21,21 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
 
+const readFileDataUrl = (file) => new Promise((resolve, reject) => {
+  if (!file) {
+    resolve(null);
+    return;
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    reject(new Error('Attachment must be under 4MB'));
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => resolve({ name: file.name, type: file.type, dataUrl: reader.result });
+  reader.onerror = () => reject(new Error('Failed to read attachment'));
+  reader.readAsDataURL(file);
+});
+
 const formatTime12h = (value) => {
   const [hourStr, minute] = String(value || '').split(':');
   const hour = Number(hourStr);
@@ -437,16 +452,22 @@ const renderTicketList = (containerId, ticketList, emptyText) => {
     container.innerHTML = `<div class="booking-item notice-empty">${emptyText}</div>`;
     return;
   }
-  container.innerHTML = ticketList.map((t) => `
+  container.innerHTML = ticketList.map((t) => {
+    const needsAcceptance = t.costBorneBy === 'Member' && t.cost != null && !t.memberAccepted;
+    return `
     <div class="booking-item">
       <span class="notice-text">
         <strong>${escapeHtml(t.category)}</strong> — ${escapeHtml(t.subject)}
         <span class="${statusTagClass(t.status)}">${escapeHtml(t.status)}</span>
         ${t.description ? `<br /><span class="form-hint">${escapeHtml(t.description)}</span>` : ''}
         ${t.adminRemarks ? `<br /><span class="form-hint">Society remarks: ${escapeHtml(t.adminRemarks)}</span>` : ''}
+        ${t.costBorneBy === 'Member' && t.cost != null ? `<br /><span class="form-hint">You are being charged ₹${escapeHtml(t.cost)} for this${t.memberAccepted ? ' (accepted)' : ' — acceptance required'}</span>` : ''}
       </span>
+      <a class="action-btn" href="workorder.html?id=${t.id}&role=member" target="_blank" rel="noopener">View</a>
+      ${needsAcceptance ? `<button class="action-btn" data-action="accept-ticket" data-id="${t.id}">Accept</button>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 };
 
 const isOpenTicket = (t) => t.status === 'Open' || t.status === 'In Progress';
@@ -465,14 +486,38 @@ const fetchMyRequests = async () => {
   setText('statMyRequests', myRequests.filter(isOpenTicket).length);
 };
 
+const acceptTicket = async (id) => {
+  if (!confirm('Accept this cost so the society can close the ticket?')) return;
+  try {
+    await api(`/tickets?id=${id}`, { method: 'PUT', body: JSON.stringify({ action: 'accept' }) });
+    await fetchMyComplaints();
+    await fetchMyRequests();
+  } catch (error) {
+    alert(error.message || 'Failed to accept.');
+  }
+};
+
+document.getElementById('myComplaintList')?.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-action="accept-ticket"]');
+  if (!button) return;
+  acceptTicket(Number(button.getAttribute('data-id')));
+});
+document.getElementById('myRequestList')?.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-action="accept-ticket"]');
+  if (!button) return;
+  acceptTicket(Number(button.getAttribute('data-id')));
+});
+
 document.getElementById('complaint-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const category = document.getElementById('complaintCategory').value;
   const subject = document.getElementById('complaintSubject').value.trim();
   const description = document.getElementById('complaintDescription').value.trim();
+  const attachmentInput = document.getElementById('complaintAttachment');
   const message = document.getElementById('complaintMessage');
   try {
-    await api('/tickets', { method: 'POST', body: JSON.stringify({ kind: 'complaint', category, subject, description }) });
+    const attachment = await readFileDataUrl(attachmentInput.files && attachmentInput.files[0]);
+    await api('/tickets', { method: 'POST', body: JSON.stringify({ kind: 'complaint', category, subject, description, attachment }) });
     if (message) {
       message.textContent = 'Your complaint has been submitted.';
       message.style.color = '#8dffb0';
@@ -492,9 +537,11 @@ document.getElementById('request-form')?.addEventListener('submit', async (event
   const category = document.getElementById('requestCategory').value;
   const subject = document.getElementById('requestSubject').value.trim();
   const description = document.getElementById('requestDescription').value.trim();
+  const attachmentInput = document.getElementById('requestAttachment');
   const message = document.getElementById('requestMessage');
   try {
-    await api('/tickets', { method: 'POST', body: JSON.stringify({ kind: 'request', category, subject, description }) });
+    const attachment = await readFileDataUrl(attachmentInput.files && attachmentInput.files[0]);
+    await api('/tickets', { method: 'POST', body: JSON.stringify({ kind: 'request', category, subject, description, attachment }) });
     if (message) {
       message.textContent = 'Your request has been submitted.';
       message.style.color = '#8dffb0';

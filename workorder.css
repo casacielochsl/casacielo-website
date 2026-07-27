@@ -1,0 +1,2 @@
+#woHistory td:last-child, #workorderSheet thead th:last-child { text-align: left; }
+#woDescription, #woHistory td:nth-child(3) { white-space: pre-wrap; }

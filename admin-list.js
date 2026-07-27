@@ -739,7 +739,10 @@ const renderTicketTable = (tableBodyId, ticketList, statusFilterValue) => {
       <td>${escapeHtml(t.category)}</td>
       <td>${escapeHtml(t.subject)}</td>
       <td><span class="status-tag status-${String(t.status).toLowerCase().replace(/\s+/g, '-')}">${escapeHtml(t.status)}</span></td>
-      <td><button class="action-btn" data-action="${action}" data-id="${t.id}">Update</button></td>
+      <td>
+        <a class="action-btn" href="workorder.html?id=${t.id}&role=admin" target="_blank" rel="noopener">Work Order</a>
+        <button class="action-btn" data-action="${action}" data-id="${t.id}">Update</button>
+      </td>
     </tr>
   `).join('');
 };
@@ -768,6 +771,8 @@ const wireTicketUpdateForm = (kind, tableBodyId, list, refresh) => {
   const editIdInput = document.getElementById(`${kind}EditId`);
   const statusSelect = document.getElementById(`${kind}Status`);
   const remarksInput = document.getElementById(`${kind}Remarks`);
+  const costBorneBySelect = document.getElementById(`${kind}CostBorneBy`);
+  const costInput = document.getElementById(`${kind}Cost`);
   const cancelBtn = document.getElementById(`${kind}CancelEditBtn`);
   const form = document.getElementById(formId);
   const tableBody = document.getElementById(tableBodyId);
@@ -786,6 +791,8 @@ const wireTicketUpdateForm = (kind, tableBodyId, list, refresh) => {
     editIdInput.value = String(ticket.id);
     statusSelect.value = ticket.status;
     remarksInput.value = ticket.adminRemarks || '';
+    costBorneBySelect.value = ticket.costBorneBy || '';
+    costInput.value = ticket.cost != null ? ticket.cost : '';
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
@@ -799,7 +806,12 @@ const wireTicketUpdateForm = (kind, tableBodyId, list, refresh) => {
     try {
       await api(`/tickets?id=${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ status: statusSelect.value, adminRemarks: remarksInput.value.trim() })
+        body: JSON.stringify({
+          status: statusSelect.value,
+          adminRemarks: remarksInput.value.trim(),
+          costBorneBy: costBorneBySelect.value || null,
+          cost: costInput.value === '' ? null : Number(costInput.value)
+        })
       });
       exitEditMode();
       await refresh();

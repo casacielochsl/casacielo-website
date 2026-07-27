@@ -224,6 +224,10 @@
                   <span>Description</span>
                   <textarea id="complaintDescription" rows="3" placeholder="Describe the issue in detail"></textarea>
                 </label>
+                <label class="field field-full">
+                  <span>Attachment (optional, image or PDF, max 4MB)</span>
+                  <input id="complaintAttachment" type="file" accept="image/*,application/pdf" />
+                </label>
                 <button class="btn btn-primary" type="submit">Submit Complaint</button>
               </form>
               <p id="complaintMessage" class="form-hint"></p>
@@ -268,6 +272,10 @@
                 <label class="field field-full">
                   <span>Description</span>
                   <textarea id="requestDescription" rows="3" placeholder="Provide any details needed to process this request"></textarea>
+                </label>
+                <label class="field field-full">
+                  <span>Attachment (optional, image or PDF, max 4MB)</span>
+                  <input id="requestAttachment" type="file" accept="image/*,application/pdf" />
                 </label>
                 <button class="btn btn-primary" type="submit">Submit Request</button>
               </form>

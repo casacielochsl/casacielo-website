@@ -409,10 +409,23 @@
                     <option>Closed</option>
                   </select>
                 </label>
+                <label class="field">
+                  <span>Cost Borne By (optional)</span>
+                  <select id="complaintCostBorneBy">
+                    <option value="">Not applicable</option>
+                    <option value="Society">Society</option>
+                    <option value="Member">Member</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Estimated Cost (₹, optional)</span>
+                  <input id="complaintCost" type="number" min="0" step="1" />
+                </label>
                 <label class="field field-full">
                   <span>Remarks (optional)</span>
                   <input id="complaintRemarks" type="text" placeholder="Note visible to the member" />
                 </label>
+                <p class="form-hint">If Cost Borne By is set to Member, the member must accept the cost before this ticket can be Closed.</p>
                 <button class="btn btn-primary" type="submit">Save</button>
                 <button class="btn btn-secondary" type="button" id="complaintCancelEditBtn">Cancel</button>
               </form>
@@ -478,10 +491,23 @@
                     <option>Closed</option>
                   </select>
                 </label>
+                <label class="field">
+                  <span>Cost Borne By (optional)</span>
+                  <select id="requestCostBorneBy">
+                    <option value="">Not applicable</option>
+                    <option value="Society">Society</option>
+                    <option value="Member">Member</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Estimated Cost (₹, optional)</span>
+                  <input id="requestCost" type="number" min="0" step="1" />
+                </label>
                 <label class="field field-full">
                   <span>Remarks (optional)</span>
                   <input id="requestRemarks" type="text" placeholder="Note visible to the member" />
                 </label>
+                <p class="form-hint">If Cost Borne By is set to Member, the member must accept the cost before this ticket can be Closed.</p>
                 <button class="btn btn-primary" type="submit">Save</button>
                 <button class="btn btn-secondary" type="button" id="requestCancelEditBtn">Cancel</button>
               </form>

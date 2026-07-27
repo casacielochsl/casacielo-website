@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="assets/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Casa Cielo | Work Order</title>
+    <link rel="stylesheet" href="invoice.css" />
+    <link rel="stylesheet" href="workorder.css" />
+  </head>
+  <body>
+    <div class="invoice-toolbar no-print">
+      <button class="btn btn-secondary" type="button" onclick="history.back()">Back</button>
+      <button class="btn btn-primary" type="button" id="acceptBtn" hidden>Accept &amp; Acknowledge</button>
+      <button class="btn btn-primary" type="button" id="printBtn">Print Work Order</button>
+    </div>
+
+    <p id="workorderError" class="invoice-error no-print" hidden>Ticket not found.</p>
+
+    <div class="invoice-sheet" id="workorderSheet">
+      <img class="invoice-header-img" src="assets/letterhead-header.jpg" alt="Casa Cielo Co-operative Housing Society Limited" />
+
+      <div class="invoice-body">
+        <img class="invoice-watermark" src="assets/logo.png" alt="" />
+
+        <div class="invoice-meta">
+          <div>
+            <span>Work Order #</span>
+            <strong id="woNumber">-</strong>
+          </div>
+          <div>
+            <span>Raised On</span>
+            <strong id="woDate">-</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong id="woStatus">-</strong>
+          </div>
+        </div>
+
+        <h3>Raised By</h3>
+        <table class="invoice-table">
+          <tr><td>Name</td><td id="woName">-</td></tr>
+          <tr><td>Flat</td><td id="woFlat">-</td></tr>
+          <tr><td>Wing</td><td id="woWing">-</td></tr>
+        </table>
+
+        <h3 id="woKindHeading">Ticket Details</h3>
+        <table class="invoice-table">
+          <tr><td>Category</td><td id="woCategory">-</td></tr>
+          <tr><td>Subject</td><td id="woSubject">-</td></tr>
+          <tr><td>Description</td><td id="woDescription">-</td></tr>
+        </table>
+
+        <div id="woAttachmentSection" hidden>
+          <h3>Attachment</h3>
+          <div id="woAttachment"></div>
+        </div>
+
+        <div id="woCostSection" hidden>
+          <h3>Cost / Provision</h3>
+          <table class="invoice-table">
+            <tr><td>Cost Borne By</td><td id="woCostBorneBy">-</td></tr>
+            <tr><td>Estimated Cost</td><td id="woCost">-</td></tr>
+            <tr><td>Member Acceptance</td><td id="woAcceptance">-</td></tr>
+          </table>
+        </div>
+
+        <h3>Ticket Trail</h3>
+        <table class="invoice-table">
+          <thead>
+            <tr><th>Date</th><th>Status</th><th>Remarks</th><th>By</th></tr>
+          </thead>
+          <tbody id="woHistory"></tbody>
+        </table>
+      </div>
+
+      <img class="invoice-footer-img" src="assets/letterhead-footer.jpg" alt="Casa Cielo Survey No. 149/1 and 150/10, F-Wing-003, Palava Phase-2, Lakeshore Green" />
+    </div>
+
+    <script src="workorder.js"></script>
+  </body>
+</html>
