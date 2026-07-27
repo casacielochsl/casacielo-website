@@ -81,7 +81,7 @@ const getFilteredMembers = () => {
   const searchValue = (filterSearch?.value || '').toLowerCase().trim();
   const typeValue = (filterType?.value || '').toLowerCase();
   return members.filter((member) => {
-    const record = [member.flat, member.name, member.wing, member.floor, member.memberType, member.contact, member.password].join(' ').toLowerCase();
+    const record = [member.flat, member.name, member.wing, member.floor, member.memberType, member.contact].join(' ').toLowerCase();
     const matchesSearch = !searchValue || record.includes(searchValue);
     const matchesType = !typeValue || (member.memberType || 'Owner').toLowerCase() === typeValue;
     return matchesSearch && matchesType;
@@ -99,7 +99,6 @@ const renderMembers = () => {
       <td>${member.floor || '-'}</td>
       <td>${member.memberType || 'Owner'}</td>
       <td>${member.contact || '-'}</td>
-      <td>${member.password || '-'}</td>
       <td>
         <button class="action-btn" data-action="view" data-id="${member.id}">View</button>
         <button class="action-btn" data-action="edit" data-id="${member.id}">Edit</button>
@@ -635,44 +634,74 @@ contributionTableBody?.addEventListener('click', async (event) => {
   }
 });
 
-// --- Export to Excel (CSV) ---
-const csvEscape = (value) => {
-  const str = String(value ?? '');
-  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-};
-
-document.getElementById('exportContributionsBtn')?.addEventListener('click', () => {
+// --- Export to Excel (.xlsx) ---
+document.getElementById('exportContributionsBtn')?.addEventListener('click', async () => {
   const filterId = reportOccasionFilter?.value || '';
   const visible = filterId ? contributions.filter((c) => String(c.occasionId) === filterId) : contributions;
   if (!visible.length) {
     alert('No contributions to export.');
     return;
   }
+  if (typeof ExcelJS === 'undefined') {
+    alert('Export library failed to load. Please refresh and try again.');
+    return;
+  }
+
   const occasionLabel = filterId ? (occasions.find((o) => String(o.id) === filterId)?.name || 'Occasion') : 'All Occasions';
   const header = ['Flat', 'Wing', 'Name', 'Occasion', 'Amount', 'Source', 'Note', 'Date'];
-  const rows = visible.map((c) => [
-    c.flat, c.wing, c.name, c.occasionName, c.amount,
-    c.createdBy === 'member' ? 'Member' : 'Manual',
-    c.note || '',
-    c.createdAt ? new Date(c.createdAt).toISOString().slice(0, 10) : ''
-  ]);
   const total = visible.reduce((sum, c) => sum + (c.amount || 0), 0);
 
-  const lines = [
-    ['CASA CIELO CO-OPERATIVE HOUSING SOCIETY LIMITED'],
-    [`${occasionLabel} Contribution`],
-    [],
-    header,
-    ...rows,
-    [],
-    ['', '', '', '', 'Total', total]
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Contributions');
+  sheet.columns = [
+    { width: 10 }, { width: 8 }, { width: 24 }, { width: 20 },
+    { width: 12 }, { width: 10 }, { width: 24 }, { width: 12 }
   ];
-  const csv = lines.map((row) => row.map(csvEscape).join(',')).join('\r\n');
-  const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
+
+  sheet.mergeCells(1, 1, 1, header.length);
+  const titleCell = sheet.getCell(1, 1);
+  titleCell.value = 'CASA CIELO CO-OPERATIVE HOUSING SOCIETY LIMITED';
+  titleCell.font = { bold: true, size: 14 };
+  titleCell.alignment = { horizontal: 'center' };
+
+  sheet.mergeCells(2, 1, 2, header.length);
+  const headingCell = sheet.getCell(2, 1);
+  headingCell.value = `${occasionLabel} Contribution`;
+  headingCell.font = { bold: true, size: 12 };
+  headingCell.alignment = { horizontal: 'center' };
+
+  const headerRow = sheet.getRow(4);
+  headerRow.values = header;
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCE6F1' } };
+  });
+
+  visible.forEach((c, i) => {
+    const row = sheet.getRow(5 + i);
+    row.values = [
+      c.flat, c.wing, c.name, c.occasionName, c.amount,
+      c.createdBy === 'member' ? 'Member' : 'Manual',
+      c.note || '',
+      c.createdAt ? new Date(c.createdAt).toISOString().slice(0, 10) : ''
+    ];
+    row.getCell(5).numFmt = '#,##0.00';
+  });
+
+  const totalRowIndex = 6 + visible.length;
+  const totalRow = sheet.getRow(totalRowIndex);
+  totalRow.getCell(4).value = 'Total';
+  totalRow.getCell(4).font = { bold: true };
+  totalRow.getCell(5).value = total;
+  totalRow.getCell(5).font = { bold: true };
+  totalRow.getCell(5).numFmt = '#,##0.00';
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `contributions-${occasionLabel.replace(/\s+/g, '-').toLowerCase()}.csv`;
+  link.download = `contributions-${occasionLabel.replace(/\s+/g, '-').toLowerCase()}.xlsx`;
   document.body.appendChild(link);
   link.click();
   link.remove();

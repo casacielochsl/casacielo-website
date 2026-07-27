@@ -7,3 +7,7 @@ node_modules
 # Original high-res source images (2MB+ each, CMYK) — optimized web/email
 # versions actually used by the site live in assets/ instead.
 /Images
+
+# Resident CSV with real names/contact info — already imported into MongoDB,
+# should not sit in git history.
+/memberlist
