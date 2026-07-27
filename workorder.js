@@ -85,7 +85,8 @@ const render = (ticket) => {
 
 const load = async () => {
   try {
-    const res = await fetch(`${API_BASE}/tickets`, { headers: { 'Content-Type': 'application/json' } });
+    const query = viewerRole === 'member' ? '?scope=me' : '';
+    const res = await fetch(`${API_BASE}/tickets${query}`, { headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) {
       showError();
       return;

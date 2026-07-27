@@ -116,7 +116,14 @@ module.exports = async (req, res) => {
       sendJson(res, 401, { error: 'Not authenticated' });
       return;
     }
-    const query = isAdmin ? {} : { memberId: memberSession.id };
+    // The member dashboard's "My Contributions" list always sends
+    // ?scope=me — honor that even when the viewer's browser also carries
+    // an admin session cookie (an admin who is also a registered member
+    // would otherwise see every resident's contributions on their own
+    // "My Contributions" list, since cookie-presence alone can't tell
+    // which dashboard the request came from).
+    const ownOnly = !isAdmin || (req.query && req.query.scope === 'me');
+    const query = ownOnly ? { memberId: memberSession.id } : {};
     const docs = await contributions.find(query).sort({ createdAt: -1 }).toArray();
     sendJson(res, 200, { contributions: docs.map(toContribution) });
     return;

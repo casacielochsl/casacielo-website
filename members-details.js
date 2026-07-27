@@ -412,7 +412,7 @@ const renderMyContributions = () => {
 };
 
 const fetchMyContributions = async () => {
-  const data = await api('/contributions');
+  const data = await api('/contributions?scope=me');
   myContributions = data.contributions;
   renderMyContributions();
 };
@@ -473,14 +473,14 @@ const renderTicketList = (containerId, ticketList, emptyText) => {
 const isOpenTicket = (t) => t.status === 'Open' || t.status === 'In Progress';
 
 const fetchMyComplaints = async () => {
-  const data = await api('/tickets?kind=complaint');
+  const data = await api('/tickets?kind=complaint&scope=me');
   myComplaints = data.tickets;
   renderTicketList('myComplaintList', myComplaints, 'No complaints raised yet.');
   setText('statMyComplaints', myComplaints.filter(isOpenTicket).length);
 };
 
 const fetchMyRequests = async () => {
-  const data = await api('/tickets?kind=request');
+  const data = await api('/tickets?kind=request&scope=me');
   myRequests = data.tickets;
   renderTicketList('myRequestList', myRequests, 'No requests raised yet.');
   setText('statMyRequests', myRequests.filter(isOpenTicket).length);

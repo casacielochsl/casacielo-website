@@ -22,11 +22,16 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const query = isAdmin ? {} : { memberId: memberSession.id };
+    // The member dashboard always sends ?scope=me — honor that even when
+    // the viewer's browser also carries an admin session cookie, so an
+    // admin who is also a registered member doesn't see every resident's
+    // tickets on their own "My Complaints"/"My Requests" list.
+    const ownOnly = !isAdmin || (req.query && req.query.scope === 'me');
+    const query = ownOnly ? { memberId: memberSession.id } : {};
     if (req.query && req.query.kind) query.kind = req.query.kind;
-    if (isAdmin && req.query && req.query.status) query.status = req.query.status;
+    if (!ownOnly && req.query && req.query.status) query.status = req.query.status;
 
-    const viewerRole = isAdmin ? 'admin' : 'member';
+    const viewerRole = ownOnly ? 'member' : 'admin';
     const docs = await tickets.find(query).sort({ createdAt: -1 }).toArray();
     sendJson(res, 200, { tickets: docs.map((doc) => toTicket(doc, viewerRole)) });
     return;
