@@ -352,7 +352,7 @@ bookingList?.addEventListener('click', async (event) => {
   const id = Number(button.getAttribute('data-id'));
   if (!confirm('Cancel this hall booking?')) return;
   try {
-    await api(`/bookings/${id}`, { method: 'DELETE' });
+    await api(`/bookings?id=${id}`, { method: 'DELETE' });
     await fetchBookings();
     updateStats();
   } catch (error) {
@@ -716,6 +716,99 @@ const updateStats = () => {
   if (statBookings) statBookings.textContent = bookings.length;
 };
 
+// --- Complaints & Requests (shared "tickets" endpoint, split by kind) ---
+let complaints = [];
+let requests = [];
+
+const renderTicketTable = (tableBodyId, ticketList, statusFilterValue) => {
+  const tableBody = document.getElementById(tableBodyId);
+  if (!tableBody) return;
+  const visible = statusFilterValue ? ticketList.filter((t) => t.status === statusFilterValue) : ticketList;
+  const action = tableBodyId === 'complaintTableBody' ? 'edit-complaint' : 'edit-request';
+  tableBody.innerHTML = visible.map((t) => `
+    <tr>
+      <td>${t.createdAt ? new Date(t.createdAt).toISOString().slice(0, 10) : '-'}</td>
+      <td>${escapeHtml(t.memberFlat)}</td>
+      <td>${escapeHtml(t.memberWing)}</td>
+      <td>${escapeHtml(t.memberName)}</td>
+      <td>${escapeHtml(t.category)}</td>
+      <td>${escapeHtml(t.subject)}</td>
+      <td><span class="status-tag status-${String(t.status).toLowerCase().replace(/\s+/g, '-')}">${escapeHtml(t.status)}</span></td>
+      <td><button class="action-btn" data-action="${action}" data-id="${t.id}">Update</button></td>
+    </tr>
+  `).join('');
+};
+
+const fetchComplaints = async () => {
+  const data = await api('/tickets?kind=complaint');
+  complaints = data.tickets;
+  renderTicketTable('complaintTableBody', complaints, document.getElementById('complaintStatusFilter')?.value || '');
+};
+
+const fetchRequests = async () => {
+  const data = await api('/tickets?kind=request');
+  requests = data.tickets;
+  renderTicketTable('requestTableBody', requests, document.getElementById('requestStatusFilter')?.value || '');
+};
+
+document.getElementById('complaintStatusFilter')?.addEventListener('change', (event) => {
+  renderTicketTable('complaintTableBody', complaints, event.target.value);
+});
+document.getElementById('requestStatusFilter')?.addEventListener('change', (event) => {
+  renderTicketTable('requestTableBody', requests, event.target.value);
+});
+
+const wireTicketUpdateForm = (kind, tableBodyId, list, refresh) => {
+  const formId = `${kind}-update-form`;
+  const editIdInput = document.getElementById(`${kind}EditId`);
+  const statusSelect = document.getElementById(`${kind}Status`);
+  const remarksInput = document.getElementById(`${kind}Remarks`);
+  const cancelBtn = document.getElementById(`${kind}CancelEditBtn`);
+  const form = document.getElementById(formId);
+  const tableBody = document.getElementById(tableBodyId);
+
+  const exitEditMode = () => {
+    editIdInput.value = '';
+    form.reset();
+  };
+
+  tableBody?.addEventListener('click', (event) => {
+    const button = event.target.closest(`button[data-action="edit-${kind}"]`);
+    if (!button) return;
+    const id = Number(button.getAttribute('data-id'));
+    const ticket = list().find((t) => t.id === id);
+    if (!ticket) return;
+    editIdInput.value = String(ticket.id);
+    statusSelect.value = ticket.status;
+    remarksInput.value = ticket.adminRemarks || '';
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const id = editIdInput.value;
+    if (!id) {
+      alert(`Select a ${kind} to update using its Update button.`);
+      return;
+    }
+    try {
+      await api(`/tickets?id=${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: statusSelect.value, adminRemarks: remarksInput.value.trim() })
+      });
+      exitEditMode();
+      await refresh();
+    } catch (error) {
+      alert(error.message || `Failed to update ${kind}`);
+    }
+  });
+
+  cancelBtn?.addEventListener('click', exitEditMode);
+};
+
+wireTicketUpdateForm('complaint', 'complaintTableBody', () => complaints, fetchComplaints);
+wireTicketUpdateForm('request', 'requestTableBody', () => requests, fetchRequests);
+
 const init = async () => {
   try {
     const whoami = await api('/auth/admin-whoami');
@@ -764,6 +857,12 @@ const init = async () => {
   try {
     await fetchOccasions();
     await fetchContributions();
+  } catch (error) {
+    // non-fatal
+  }
+  try {
+    await fetchComplaints();
+    await fetchRequests();
   } catch (error) {
     // non-fatal
   }

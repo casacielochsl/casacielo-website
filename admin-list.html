@@ -29,6 +29,8 @@
           <button class="dashboard-nav-item" data-section="bookings" type="button">Hall Bookings</button>
           <button class="dashboard-nav-item" data-section="rates" type="button">Rate Card</button>
           <button class="dashboard-nav-item" data-section="contributions" type="button">Contributions</button>
+          <button class="dashboard-nav-item" data-section="complaints" type="button">Complaint</button>
+          <button class="dashboard-nav-item" data-section="requests" type="button">Request</button>
           <button class="dashboard-nav-item" data-section="admins" id="adminUsersNavItem" type="button" hidden>Admin Users</button>
         </nav>
       </aside>
@@ -380,6 +382,144 @@
                     </tr>
                   </thead>
                   <tbody id="contributionTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="complaints">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Update Complaint</h1>
+                </div>
+              </div>
+              <form id="complaint-update-form" class="notice-form">
+                <input id="complaintEditId" type="hidden" />
+                <label class="field">
+                  <span>Status</span>
+                  <select id="complaintStatus" required>
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                    <option>Rejected</option>
+                    <option>Closed</option>
+                  </select>
+                </label>
+                <label class="field field-full">
+                  <span>Remarks (optional)</span>
+                  <input id="complaintRemarks" type="text" placeholder="Note visible to the member" />
+                </label>
+                <button class="btn btn-primary" type="submit">Save</button>
+                <button class="btn btn-secondary" type="button" id="complaintCancelEditBtn">Cancel</button>
+              </form>
+            </section>
+
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Complaints</h1>
+                </div>
+              </div>
+              <div class="filter-bar">
+                <label class="field field-inline">
+                  <span>Status</span>
+                  <select id="complaintStatusFilter">
+                    <option value="">All</option>
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                    <option>Rejected</option>
+                    <option>Closed</option>
+                  </select>
+                </label>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Flat</th>
+                      <th>Wing</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Subject</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="complaintTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="requests">
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Update Request</h1>
+                </div>
+              </div>
+              <form id="request-update-form" class="notice-form">
+                <input id="requestEditId" type="hidden" />
+                <label class="field">
+                  <span>Status</span>
+                  <select id="requestStatus" required>
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                    <option>Rejected</option>
+                    <option>Closed</option>
+                  </select>
+                </label>
+                <label class="field field-full">
+                  <span>Remarks (optional)</span>
+                  <input id="requestRemarks" type="text" placeholder="Note visible to the member" />
+                </label>
+                <button class="btn btn-primary" type="submit">Save</button>
+                <button class="btn btn-secondary" type="button" id="requestCancelEditBtn">Cancel</button>
+              </form>
+            </section>
+
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
+                  <h1>Requests</h1>
+                </div>
+              </div>
+              <div class="filter-bar">
+                <label class="field field-inline">
+                  <span>Status</span>
+                  <select id="requestStatusFilter">
+                    <option value="">All</option>
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                    <option>Rejected</option>
+                    <option>Closed</option>
+                  </select>
+                </label>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Flat</th>
+                      <th>Wing</th>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Subject</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="requestTableBody"></tbody>
                 </table>
               </div>
             </section>

@@ -341,7 +341,7 @@ document.getElementById('myBookingList')?.addEventListener('click', async (event
   const id = Number(button.getAttribute('data-id'));
   if (!confirm('Cancel this booking?')) return;
   try {
-    await api(`/bookings/${id}`, { method: 'DELETE' });
+    await api(`/bookings?id=${id}`, { method: 'DELETE' });
     await fetchBookings();
     renderCalendar();
     renderMyBookings();
@@ -424,6 +424,87 @@ document.getElementById('member-contribution-form')?.addEventListener('submit', 
   }
 });
 
+// --- Complaints & Requests ---
+let myComplaints = [];
+let myRequests = [];
+
+const statusTagClass = (status) => `status-tag status-${String(status || '').toLowerCase().replace(/\s+/g, '-')}`;
+
+const renderTicketList = (containerId, ticketList, emptyText) => {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!ticketList.length) {
+    container.innerHTML = `<div class="booking-item notice-empty">${emptyText}</div>`;
+    return;
+  }
+  container.innerHTML = ticketList.map((t) => `
+    <div class="booking-item">
+      <span class="notice-text">
+        <strong>${escapeHtml(t.category)}</strong> — ${escapeHtml(t.subject)}
+        <span class="${statusTagClass(t.status)}">${escapeHtml(t.status)}</span>
+        ${t.description ? `<br /><span class="form-hint">${escapeHtml(t.description)}</span>` : ''}
+        ${t.adminRemarks ? `<br /><span class="form-hint">Society remarks: ${escapeHtml(t.adminRemarks)}</span>` : ''}
+      </span>
+    </div>
+  `).join('');
+};
+
+const fetchMyComplaints = async () => {
+  const data = await api('/tickets?kind=complaint');
+  myComplaints = data.tickets;
+  renderTicketList('myComplaintList', myComplaints, 'No complaints raised yet.');
+};
+
+const fetchMyRequests = async () => {
+  const data = await api('/tickets?kind=request');
+  myRequests = data.tickets;
+  renderTicketList('myRequestList', myRequests, 'No requests raised yet.');
+};
+
+document.getElementById('complaint-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const category = document.getElementById('complaintCategory').value;
+  const subject = document.getElementById('complaintSubject').value.trim();
+  const description = document.getElementById('complaintDescription').value.trim();
+  const message = document.getElementById('complaintMessage');
+  try {
+    await api('/tickets', { method: 'POST', body: JSON.stringify({ kind: 'complaint', category, subject, description }) });
+    if (message) {
+      message.textContent = 'Your complaint has been submitted.';
+      message.style.color = '#8dffb0';
+    }
+    document.getElementById('complaint-form').reset();
+    await fetchMyComplaints();
+  } catch (error) {
+    if (message) {
+      message.textContent = error.message || 'Failed to submit complaint.';
+      message.style.color = '#ff8d8d';
+    }
+  }
+});
+
+document.getElementById('request-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const category = document.getElementById('requestCategory').value;
+  const subject = document.getElementById('requestSubject').value.trim();
+  const description = document.getElementById('requestDescription').value.trim();
+  const message = document.getElementById('requestMessage');
+  try {
+    await api('/tickets', { method: 'POST', body: JSON.stringify({ kind: 'request', category, subject, description }) });
+    if (message) {
+      message.textContent = 'Your request has been submitted.';
+      message.style.color = '#8dffb0';
+    }
+    document.getElementById('request-form').reset();
+    await fetchMyRequests();
+  } catch (error) {
+    if (message) {
+      message.textContent = error.message || 'Failed to submit request.';
+      message.style.color = '#ff8d8d';
+    }
+  }
+});
+
 const init = async () => {
   let member;
   try {
@@ -459,6 +540,13 @@ const init = async () => {
   try {
     await fetchOccasionsForContribution();
     await fetchMyContributions();
+  } catch (error) {
+    // non-fatal
+  }
+
+  try {
+    await fetchMyComplaints();
+    await fetchMyRequests();
   } catch (error) {
     // non-fatal
   }

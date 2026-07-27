@@ -24,6 +24,9 @@ async function main() {
   await db.collection('occasions').createIndex({ id: 1 }, { unique: true });
   await db.collection('contributions').createIndex({ id: 1 }, { unique: true });
   await db.collection('contributions').createIndex({ occasionId: 1 });
+  await db.collection('tickets').createIndex({ id: 1 }, { unique: true });
+  await db.collection('tickets').createIndex({ memberId: 1 });
+  await db.collection('tickets').createIndex({ kind: 1 });
   console.log('Indexes ready.');
 
   const adminPasswordHash = await bcrypt.hash(DEFAULT_ADMIN.password, 10);

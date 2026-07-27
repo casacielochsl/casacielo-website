@@ -27,6 +27,8 @@
           <button class="dashboard-nav-item" data-section="dues" type="button">Dues</button>
           <button class="dashboard-nav-item" data-section="notices" type="button">Notice Board</button>
           <button class="dashboard-nav-item" data-section="contribution" type="button">Contribution</button>
+          <button class="dashboard-nav-item" data-section="complaints" type="button">Complaint</button>
+          <button class="dashboard-nav-item" data-section="requests" type="button">Request</button>
         </nav>
       </aside>
 
@@ -178,6 +180,95 @@
               <p class="eyebrow">Society</p>
               <h2>My Contributions</h2>
               <div id="myContributionList" class="booking-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="complaints">
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>Raise a Complaint</h2>
+              <p class="form-hint" id="complaintFormHint"></p>
+              <form id="complaint-form" class="notice-form">
+                <label class="field">
+                  <span>Category</span>
+                  <select id="complaintCategory" required>
+                    <option value="">Select category</option>
+                    <option>Plumbing</option>
+                    <option>Electrical</option>
+                    <option>Housekeeping / Cleanliness</option>
+                    <option>Security</option>
+                    <option>Parking</option>
+                    <option>Lift / Elevator</option>
+                    <option>Common Area Maintenance</option>
+                    <option>Water Supply</option>
+                    <option>Pest Control</option>
+                    <option>Noise / Nuisance</option>
+                    <option>Garden / Landscaping</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Subject</span>
+                  <input id="complaintSubject" type="text" placeholder="Short summary" required />
+                </label>
+                <label class="field field-full">
+                  <span>Description</span>
+                  <textarea id="complaintDescription" rows="3" placeholder="Describe the issue in detail"></textarea>
+                </label>
+                <button class="btn btn-primary" type="submit">Submit Complaint</button>
+              </form>
+              <p id="complaintMessage" class="form-hint"></p>
+            </section>
+
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>My Complaints</h2>
+              <div id="myComplaintList" class="booking-list"></div>
+            </section>
+          </section>
+
+          <section class="dashboard-section" data-section-panel="requests">
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>Raise a Request</h2>
+              <p class="form-hint" id="requestFormHint"></p>
+              <form id="request-form" class="notice-form">
+                <label class="field">
+                  <span>Request Type</span>
+                  <select id="requestCategory" required>
+                    <option value="">Select request type</option>
+                    <option>No Objection Certificate (NOC)</option>
+                    <option>No Dues Certificate</option>
+                    <option>Society Exit / Membership Transfer</option>
+                    <option>Maintenance Bill Deviation</option>
+                    <option>New Tenant Registration</option>
+                    <option>Tenant Deregistration</option>
+                    <option>Shifting Request (Move In / Move Out)</option>
+                    <option>Parking Allotment</option>
+                    <option>Renovation / Interior Work Permission</option>
+                    <option>Nomination Form</option>
+                    <option>Duplicate Share Certificate</option>
+                    <option>Address Proof Letter</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Subject</span>
+                  <input id="requestSubject" type="text" placeholder="Short summary" required />
+                </label>
+                <label class="field field-full">
+                  <span>Description</span>
+                  <textarea id="requestDescription" rows="3" placeholder="Provide any details needed to process this request"></textarea>
+                </label>
+                <button class="btn btn-primary" type="submit">Submit Request</button>
+              </form>
+              <p id="requestMessage" class="form-hint"></p>
+            </section>
+
+            <section class="detail-card">
+              <p class="eyebrow">Society</p>
+              <h2>My Requests</h2>
+              <div id="myRequestList" class="booking-list"></div>
             </section>
           </section>
         </div>
