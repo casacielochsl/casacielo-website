@@ -161,10 +161,44 @@
               <div class="panel-header">
                 <div>
                   <p class="eyebrow">Admin Access</p>
+                  <h1>Book for a Member</h1>
+                </div>
+              </div>
+              <p class="form-hint">Create a hall booking on behalf of a member — the same confirmation/invoice emails go out as if they booked it themselves.</p>
+              <form id="admin-booking-form" class="notice-form">
+                <label class="field">
+                  <span>Member</span>
+                  <select id="adminBookingMember" required></select>
+                </label>
+                <label class="field">
+                  <span>Date</span>
+                  <input id="adminBookingDate" type="date" required />
+                </label>
+                <label class="field">
+                  <span>Slot</span>
+                  <select id="adminBookingSlot" required>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                    <option value="Evening">Evening</option>
+                    <option value="Full Day">Full Day</option>
+                  </select>
+                </label>
+                <label class="field field-full">
+                  <span>Purpose (optional)</span>
+                  <input id="adminBookingPurpose" type="text" placeholder="e.g. Birthday party" />
+                </label>
+                <button class="btn btn-primary" type="submit">Book Now</button>
+              </form>
+            </section>
+
+            <section class="admin-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin Access</p>
                   <h1>Hall Bookings</h1>
                 </div>
               </div>
-              <p class="form-hint">All community hall bookings made by members. Cancel a booking to free up that slot.</p>
+              <p class="form-hint">All community hall bookings. Cancel a booking to free up that slot.</p>
               <div id="bookingList" class="notice-list"></div>
             </section>
           </section>

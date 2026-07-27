@@ -1,5 +1,5 @@
 const { getDb, nextSequence } = require('../_lib/db');
-const { readSession, requireMemberSession, requireAdminSession, ADMIN_COOKIE, MEMBER_COOKIE } = require('../_lib/auth');
+const { readSession, requireAdminSession, ADMIN_COOKIE, MEMBER_COOKIE } = require('../_lib/auth');
 const { readJsonBody, sendJson } = require('../_lib/http');
 const { SLOTS, toBooking, hasConflict } = require('../_lib/bookings');
 const { toRates, rateForSlot, timeRangeForSlot, DEFAULT_SLOT_TIMES } = require('../_lib/rates');
@@ -79,8 +79,15 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    const session = requireMemberSession(req, res);
-    if (!session) return;
+    const adminSession = readSession(req, ADMIN_COOKIE);
+    const isAdmin = !!(adminSession && adminSession.role === 'admin');
+    const memberSession = readSession(req, MEMBER_COOKIE);
+    const isMember = !!(memberSession && memberSession.role === 'member');
+
+    if (!isAdmin && !isMember) {
+      sendJson(res, 401, { error: 'Not authenticated' });
+      return;
+    }
 
     let body;
     try {
@@ -114,7 +121,17 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const member = await db.collection('members').findOne({ id: session.id });
+    let member;
+    if (isMember) {
+      member = await db.collection('members').findOne({ id: memberSession.id });
+    } else {
+      const targetMemberId = Number(body.memberId);
+      if (!targetMemberId) {
+        sendJson(res, 400, { error: 'A member must be selected for this booking' });
+        return;
+      }
+      member = await db.collection('members').findOne({ id: targetMemberId });
+    }
     if (!member) {
       sendJson(res, 404, { error: 'Member record not found' });
       return;
@@ -141,6 +158,7 @@ module.exports = async (req, res) => {
       purpose,
       amount,
       currency: rates.currency,
+      bookedBy: isAdmin ? 'admin' : 'member',
       createdAt: now,
       updatedAt: now
     };

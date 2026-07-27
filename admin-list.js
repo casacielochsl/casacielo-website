@@ -15,6 +15,8 @@ const eventDescriptionInput = document.getElementById('eventDescription');
 const eventImageInput = document.getElementById('eventImage');
 const eventList = document.getElementById('eventList');
 const bookingList = document.getElementById('bookingList');
+const adminBookingForm = document.getElementById('admin-booking-form');
+const adminBookingMemberSelect = document.getElementById('adminBookingMember');
 const adminUsersNavItem = document.getElementById('adminUsersNavItem');
 const adminAccountForm = document.getElementById('admin-account-form');
 const adminAccountList = document.getElementById('adminAccountList');
@@ -96,6 +98,16 @@ const renderMembers = () => {
       </td>
     </tr>
   `).join('');
+  populateAdminBookingMemberSelect();
+};
+
+const populateAdminBookingMemberSelect = () => {
+  if (!adminBookingMemberSelect) return;
+  const previousValue = adminBookingMemberSelect.value;
+  adminBookingMemberSelect.innerHTML = members
+    .map((member) => `<option value="${member.id}">${escapeHtml(member.flat)} — ${escapeHtml(member.name)}</option>`)
+    .join('');
+  if (previousValue) adminBookingMemberSelect.value = previousValue;
 };
 
 [filterSearch, filterType].forEach((element) => {
@@ -287,7 +299,7 @@ const renderBookings = (bookingsList) => {
   bookingList.innerHTML = bookingsList.map((booking) => `
     <div class="notice-item">
       <span class="notice-text">
-        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}${booking.timeRange ? ` (${escapeHtml(booking.timeRange)})` : ''}</strong> · ₹${escapeHtml(booking.amount || 0)}<br />
+        <strong>${escapeHtml(booking.date)} — ${escapeHtml(booking.slot)}${booking.timeRange ? ` (${escapeHtml(booking.timeRange)})` : ''}</strong> · ₹${escapeHtml(booking.amount || 0)}${booking.bookedBy === 'admin' ? ' · <span class="form-hint">booked by admin</span>' : ''}<br />
         <span class="form-hint">Flat ${escapeHtml(booking.memberFlat)} · ${escapeHtml(booking.memberName)}${booking.purpose ? ` · ${escapeHtml(booking.purpose)}` : ''}</span>
       </span>
       <a class="action-btn" href="invoice.html?id=${booking.id}" target="_blank" rel="noopener">Invoice</a>
@@ -301,6 +313,27 @@ const fetchBookings = async () => {
   bookings = data.bookings;
   renderBookings(bookings);
 };
+
+adminBookingForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const memberId = Number(adminBookingMemberSelect.value);
+  const date = document.getElementById('adminBookingDate').value;
+  const slot = document.getElementById('adminBookingSlot').value;
+  const purpose = document.getElementById('adminBookingPurpose').value.trim();
+  if (!memberId) {
+    alert('Select a member to book for.');
+    return;
+  }
+  try {
+    await api('/bookings', { method: 'POST', body: JSON.stringify({ memberId, date, slot, purpose }) });
+    adminBookingForm.reset();
+    await fetchBookings();
+    updateStats();
+    alert('Booking created. Confirmation and invoice emails have been sent.');
+  } catch (error) {
+    alert(error.message || 'Failed to create booking');
+  }
+});
 
 bookingList?.addEventListener('click', async (event) => {
   const button = event.target.closest('button[data-action="delete"]');

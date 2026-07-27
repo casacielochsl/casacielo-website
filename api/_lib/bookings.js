@@ -13,6 +13,7 @@ const toBooking = (doc, viewerRole) => {
     amount: doc.amount ?? 0,
     currency: doc.currency || 'INR',
     timeRange: doc.timeRange || '',
+    bookedBy: doc.bookedBy || 'member',
     createdAt: doc.createdAt
   };
   if (viewerRole === 'admin') {
