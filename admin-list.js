@@ -648,6 +648,7 @@ document.getElementById('exportContributionsBtn')?.addEventListener('click', () 
     alert('No contributions to export.');
     return;
   }
+  const occasionLabel = filterId ? (occasions.find((o) => String(o.id) === filterId)?.name || 'Occasion') : 'All Occasions';
   const header = ['Flat', 'Wing', 'Name', 'Occasion', 'Amount', 'Source', 'Note', 'Date'];
   const rows = visible.map((c) => [
     c.flat, c.wing, c.name, c.occasionName, c.amount,
@@ -655,12 +656,22 @@ document.getElementById('exportContributionsBtn')?.addEventListener('click', () 
     c.note || '',
     c.createdAt ? new Date(c.createdAt).toISOString().slice(0, 10) : ''
   ]);
-  const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\r\n');
+  const total = visible.reduce((sum, c) => sum + (c.amount || 0), 0);
+
+  const lines = [
+    ['CASA CIELO CO-OPERATIVE HOUSING SOCIETY LIMITED'],
+    [`${occasionLabel} Contribution`],
+    [],
+    header,
+    ...rows,
+    [],
+    ['', '', '', '', 'Total', total]
+  ];
+  const csv = lines.map((row) => row.map(csvEscape).join(',')).join('\r\n');
   const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  const occasionLabel = filterId ? occasions.find((o) => String(o.id) === filterId)?.name || 'occasion' : 'all-occasions';
   link.download = `contributions-${occasionLabel.replace(/\s+/g, '-').toLowerCase()}.csv`;
   document.body.appendChild(link);
   link.click();
